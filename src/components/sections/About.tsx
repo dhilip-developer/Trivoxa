@@ -68,9 +68,9 @@ export default function About() {
             </div>
             
             <div className="flex flex-wrap gap-4 mt-8">
-              <Button className="bg-orange hover:bg-orange-light text-black font-medium">
+              {/* <Button className="bg-orange hover:bg-orange-light text-black font-medium">
                 Download Resume
-              </Button>
+              </Button> */}
               <Button variant="outline" className="border-orange hover:bg-orange/10 text-orange-light">
                 Contact Me
               </Button>

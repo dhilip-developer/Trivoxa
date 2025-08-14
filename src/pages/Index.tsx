@@ -6,6 +6,7 @@ import Work from "@/components/sections/Work";
 import Process from "@/components/sections/Process";
 import About from "@/components/sections/About";
 import Footer from "@/components/layout/Footer";
+import Contact from "@/components/sections/Contact"
 
 export default function Index() {
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function Index() {
         <Work />
         <Process />
         <About />
+        <Contact/>
       </main>
       <Footer />
     </div>
