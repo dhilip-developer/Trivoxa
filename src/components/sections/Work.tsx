@@ -1,0 +1,163 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+const projects = [
+  {
+    title: "TechFinance Dashboard",
+    description: "Interactive financial analytics platform with real-time data visualization and AI-powered insights.",
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop",
+    category: "Web App",
+    tags: ["React", "TypeScript", "D3.js", "Node.js"],
+    url: "#"
+  },
+  {
+    title: "MediConnect",
+    description: "Healthcare mobile application connecting patients with doctors for virtual consultations and appointment scheduling.",
+    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2070&auto=format&fit=crop",
+    category: "Mobile App",
+    tags: ["React Native", "Firebase", "Redux", "API Integration"],
+    url: "#"
+  },
+  {
+    title: "EcoTrack",
+    description: "Environmental monitoring system with IoT integration, real-time analytics and interactive dashboard.",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop",
+    category: "IoT Platform",
+    tags: ["Vue.js", "Node.js", "MongoDB", "IoT", "WebSockets"],
+    url: "#"
+  },
+  {
+    title: "CryptoVault",
+    description: "Secure cryptocurrency wallet with multi-chain support, real-time price tracking, and advanced security features.",
+    image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop",
+    category: "Blockchain",
+    tags: ["React", "Web3.js", "Blockchain", "Smart Contracts"],
+    url: "#"
+  },
+  {
+    title: "ShopSmart",
+    description: "E-commerce platform with AI-powered product recommendations, social shopping features, and seamless checkout.",
+    image: "https://images.unsplash.com/photo-1526289034009-0240ddb68ce3?q=80&w=2071&auto=format&fit=crop",
+    category: "E-commerce",
+    tags: ["Next.js", "Stripe", "MongoDB", "Redis"],
+    url: "#"
+  },
+  {
+    title: "AI Content Studio",
+    description: "Content creation platform leveraging AI for generating articles, social media posts, and marketing copy.",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop",
+    category: "AI Tool",
+    tags: ["React", "OpenAI API", "Node.js", "Express"],
+    url: "#"
+  }
+];
+
+const categories = ["All", "Web App", "Mobile App", "Blockchain", "E-commerce", "AI Tool", "IoT Platform"];
+
+export default function Work() {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  
+  const filteredProjects = activeCategory === "All" 
+    ? projects 
+    : projects.filter(project => project.category === activeCategory);
+
+  return (
+    <section id="work" className="py-24 bg-gradient-to-b from-tech-dark to-black relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute top-0 left-0 w-64 h-64 rounded-full bg-orange/5 filter blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 rounded-full bg-neon-cyan/5 filter blur-3xl"></div>
+      
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-3xl mx-auto text-center mb-12">
+          <div className="inline-block px-3 py-1 rounded-full bg-orange/10 border border-orange/20 text-orange-light font-medium text-sm mb-4">
+            Portfolio
+          </div>
+          <h2 className="text-4xl font-bold mb-4 orange-glow">
+            <span className="bg-gradient-to-r from-orange-light to-orange bg-clip-text text-transparent">
+              Featured Projects
+            </span>
+          </h2>
+          <p className="text-lg text-gray-300">
+            A showcase of my best work across various industries and technologies, demonstrating expertise in creating innovative digital solutions.
+          </p>
+        </div>
+        
+        {/* Category filter */}
+        <div className="flex flex-wrap justify-center gap-2 mb-12">
+          {categories.map((category) => (
+            <Button
+              key={category}
+              variant={activeCategory === category ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveCategory(category)}
+              className={`rounded-full ${
+                activeCategory === category 
+                  ? "bg-orange hover:bg-orange-light text-black" 
+                  : "border-gray-700 text-gray-300 hover:border-orange hover:text-orange"
+              }`}
+            >
+              {category}
+            </Button>
+          ))}
+        </div>
+        
+        {/* Projects grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map((project, index) => (
+            <Card 
+              key={index}
+              className="bg-tech-dark border-gray-800 hover:border-orange/50 transition-all duration-300 overflow-hidden group"
+              onMouseEnter={() => setHoveredProject(index)}
+              onMouseLeave={() => setHoveredProject(null)}
+            >
+              <div className="relative h-56 overflow-hidden">
+                <img 
+                  src={project.image} 
+                  alt={project.title} 
+                  className={`w-full h-full object-cover transition-all duration-700 ${hoveredProject === index ? 'scale-110 blur-sm' : ''}`}
+                />
+                
+                {/* Overlay on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex items-center justify-center transition-opacity duration-300 ${hoveredProject === index ? 'opacity-100' : 'opacity-0'}`}>
+                  <Button className="bg-orange hover:bg-orange-light text-black font-medium">
+                    View Project
+                  </Button>
+                </div>
+                
+                {/* Category badge */}
+                <Badge className="absolute top-3 left-3 bg-black/70 text-orange border-none">
+                  {project.category}
+                </Badge>
+              </div>
+              
+              <CardContent className="p-5">
+                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-light transition-colors">
+                  {project.title}
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  {project.description}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {project.tags.map((tag, i) => (
+                    <div key={i} className="text-xs px-2 py-1 bg-black/70 border border-gray-800 rounded-full text-gray-300">
+                      {tag}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        <div className="mt-12 text-center">
+          <Button className="bg-transparent border border-orange text-orange hover:bg-orange hover:text-black">
+            View All Projects
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}

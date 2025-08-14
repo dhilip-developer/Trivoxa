@@ -1,0 +1,202 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --background: 0 0% 3%;
+    --foreground: 0 0% 98%;
+ 
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 98%;
+ 
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
+ 
+    --primary: 28 100% 50%;
+    --primary-foreground: 0 0% 0%;
+ 
+    --secondary: 240 3% 12%;
+    --secondary-foreground: 0 0% 98%;
+ 
+    --muted: 240 3% 15%;
+    --muted-foreground: 240 5% 64.9%;
+ 
+    --accent: 28 100% 50%;
+    --accent-foreground: 0 0% 0%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+ 
+    --border: 240 3% 20%;
+    --input: 240 3% 20%;
+    --ring: 28 100% 50%;
+ 
+    --radius: 0.5rem;
+
+    /* Tech Theme Colors */
+    --tech-dark: 0 0% 5%;
+    --orange: 28 100% 50%;
+    --orange-light: 28 100% 60%;
+    --neon-cyan: 181 100% 42%;
+    --neon-purple: 280 100% 65%;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-tech-dark;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-700 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-orange/60;
+  }
+}
+
+/* 3D Tech Design Styling */
+.tech-grid {
+  background-image: radial-gradient(circle at center, rgba(255, 136, 0, 0.05) 0%, transparent 20%), 
+                    linear-gradient(to right, rgba(0, 0, 0, 0) 99.5%, rgba(255, 136, 0, 0.1) 100%),
+                    linear-gradient(to bottom, rgba(0, 0, 0, 0) 99.5%, rgba(255, 136, 0, 0.1) 100%);
+  background-size: 4rem 4rem, 1rem 1rem, 1rem 1rem;
+  background-position: 0 0;
+}
+
+.orange-glow {
+  text-shadow: 0 0 20px rgba(255, 136, 0, 0.2);
+}
+
+.hover-3d {
+  transform-style: preserve-3d;
+  transform: perspective(1000px) rotateX(var(--rotate-x, 0deg)) rotateY(var(--rotate-y, 0deg));
+  transition: transform 0.1s ease;
+}
+
+.perspective-container {
+  perspective: 1000px;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+.shadow-neon {
+  box-shadow: 0 0 15px rgba(0, 215, 195, 0.2);
+}
+
+.shadow-neon-orange {
+  box-shadow: 0 0 15px rgba(255, 136, 0, 0.2);
+}
+
+.tech-badge {
+  @apply w-8 h-8 rounded-full bg-black/70 backdrop-blur-sm border border-gray-800 flex items-center justify-center p-1 shadow-neon;
+}
+
+/* Process section animations */
+.process-item.appear {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.process-item:nth-child(odd) {
+  transform: translateX(-20px);
+}
+
+.process-item:nth-child(even) {
+  transform: translateX(20px);
+}
+
+/* Define text and background colors */
+.text-orange {
+  color: theme('colors.orange.DEFAULT');
+}
+
+.text-orange-light {
+  color: theme('colors.orange.light');
+}
+
+.text-neon-cyan {
+  color: theme('colors.cyan.400');
+}
+
+.text-neon-purple {
+  color: theme('colors.purple.500');
+}
+
+.bg-orange {
+  background-color: theme('colors.orange.DEFAULT');
+}
+
+.bg-orange-light {
+  background-color: theme('colors.orange.light');
+}
+
+.bg-tech-dark {
+  background-color: hsl(var(--tech-dark));
+}
+
+.bg-neon-cyan {
+  background-color: theme('colors.cyan.400');
+}
+
+.bg-neon-purple {
+  background-color: theme('colors.purple.500');
+}
+
+/* Border colors */
+.border-orange {
+  border-color: theme('colors.orange.DEFAULT');
+}
+
+.border-neon-cyan {
+  border-color: theme('colors.cyan.400');
+}
+
+/* Hover effects */
+.hover\:bg-orange:hover {
+  background-color: theme('colors.orange.DEFAULT');
+}
+
+.hover\:bg-orange-light:hover {
+  background-color: theme('colors.orange.light');
+}
+
+.hover\:text-orange:hover {
+  color: theme('colors.orange.DEFAULT');
+}
+
+.hover\:text-orange-light:hover {
+  color: theme('colors.orange.light');
+}
+
+.hover\:border-orange:hover {
+  border-color: theme('colors.orange.DEFAULT');
+}
