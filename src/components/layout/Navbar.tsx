@@ -70,8 +70,8 @@ export default function Navbar() {
           <NavLink href="#work">Work</NavLink>
           <NavLink href="#process">Process</NavLink>
           <NavLink href="#about">About</NavLink>
-          <Button className="bg-orange hover:bg-orange-light text-black font-medium ">
-            <NavLink href="Contact">Contact Me</NavLink>
+          <Button >
+            <NavLink  href="#Contact">Contact Me</NavLink>
           </Button>
         </div>
 
@@ -96,8 +96,8 @@ export default function Navbar() {
           <NavLink href="#work">Work</NavLink>
           <NavLink href="#process">Process</NavLink>
           <NavLink href="#about">About</NavLink>
-          <Button className="bg-orange hover:bg-orange-light text-black font-medium w-fit">
-            <NavLink href="Contact">Contact Me</NavLink>
+          <Button className="bg-orange  text-black font-medium w-fit">
+          <NavLink href="#Contact">Contact Me</NavLink>
           </Button>
         </div>
       )}

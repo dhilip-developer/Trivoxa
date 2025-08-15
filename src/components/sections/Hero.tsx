@@ -1,13 +1,152 @@
-import { useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { AnimatedCode, codeExamples } from "@/components/ui/animated-code";
-import TechSphere from "@/components/3d/TechSphere";
+import React, { useEffect, useRef } from "react";
+// Assumes Three.js is installed locally via npm install three
+import * as THREE from 'three';
 
-export default function Hero() {
-  const heroRef = useRef<HTMLDivElement>(null);
+// --- Self-Contained Button Component ---
+const Button = ({ children, className = '', ...props }) => {
+  const baseClasses = "rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500";
+  const finalClassNames = `${baseClasses} ${className}`;
+  return (
+    <button
+      className={finalClassNames}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+// --- TechSphere Component ---
+// This component renders the 3D sphere as a background.
+function TechSphere() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      75, 
+      window.innerWidth / window.innerHeight, 
+      0.1, 
+      1000
+    );
+    camera.position.z = 3;
+    
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvasRef.current,
+      alpha: true,
+      antialias: true
+    });
+    
+    const handleResize = () => {
+      const container = canvasRef.current?.parentElement;
+      if (!container) return;
+
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    
+    const geometry = new THREE.SphereGeometry(1.5, 64, 64);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xFF8800,
+      wireframe: true,
+      emissive: 0xFF8800,
+      emissiveIntensity: 0.2,
+      metalness: 0.8,
+      roughness: 0.2,
+    });
+    
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
+    
+    const ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
+    scene.add(ambientLight);
+    
+    const pointLight1 = new THREE.PointLight(0x00D7C3, 2);
+    pointLight1.position.set(2, 2, 2);
+    scene.add(pointLight1);
+    
+    const pointLight2 = new THREE.PointLight(0xFF8800, 2);
+    pointLight2.position.set(-2, -2, 1);
+    scene.add(pointLight2);
+    
+    function animate() {
+      requestAnimationFrame(animate);
+      sphere.rotation.y += 0.005;
+      sphere.rotation.x += 0.002;
+      renderer.render(scene, camera);
+    }
+    
+    animate();
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      renderer.dispose();
+    };
+  }, []);
+  
+  return (
+    <div className="absolute top-0 left-0 w-full h-full">
+      <canvas 
+        ref={canvasRef} 
+        className="w-full h-full opacity-80 z-[-1]"
+      />
+    </div>
+  );
+}
+
+// --- App Component ---
+export default function App() {
+  const heroRef = useRef(null);
+  
+  // Inline SVGs for the new icons
+  const MernStackIcons = [
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg", alt: "MongoDB" },
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg", alt: "Express" },
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg", alt: "React" },
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg", alt: "Node.js" },
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/wordpress/wordpress-original.svg", alt: "WordPress" },
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg", alt: "Java" },
+  ];
+
+  const AiMlIcons = [
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg", alt: "Python" },
+    { src: "https://www.svgrepo.com/show/472622/machine-learning.svg", alt: "Machine Learning" },
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg", alt: "TensorFlow" },
+    { src: "https://www.svgrepo.com/show/364426/robot-ai.svg", alt: "AI" },
+  ];
+
+  const HostingIcons = [
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original.svg", alt: "AWS" },
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg", alt: "GCP" },
+    { src: "https://www.svgrepo.com/show/373977/globe.svg", alt: "Domain" },
+  ];
+
+  // Animation keyframes for rotation
+  const spinClockwise = `
+    @keyframes spinClockwise {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  `;
+
+  const spinAntiClockwise = `
+    @keyframes spinAntiClockwise {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+  `;
   
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e) => {
       if (!heroRef.current) return;
       
       const { clientX, clientY } = e;
@@ -16,9 +155,8 @@ export default function Hero() {
       const x = (clientX - left) / width;
       const y = (clientY - top) / height;
       
-      // Update custom properties for parallax effect
-      heroRef.current.style.setProperty("--mouse-x", `${x}`);
-      heroRef.current.style.setProperty("--mouse-y", `${y}`);
+      (heroRef.current as HTMLDivElement).style.setProperty("--mouse-x", `${x}`);
+      (heroRef.current as HTMLDivElement).style.setProperty("--mouse-y", `${y}`);
     };
     
     window.addEventListener("mousemove", handleMouseMove);
@@ -28,20 +166,19 @@ export default function Hero() {
   return (
     <div 
       ref={heroRef}
-      className="relative min-h-screen w-full overflow-hidden tech-grid"
+      className="relative min-h-screen w-full overflow-hidden bg-black"
       style={{
         "--mouse-x": "0.5",
         "--mouse-y": "0.5",
       } as React.CSSProperties}
     >
-      {/* Animated background elements */}
-      <div className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full bg-orange/10 filter blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-1/4 right-1/3 w-80 h-80 rounded-full bg-neon-cyan/5 filter blur-3xl animate-pulse-slow" style={{animationDelay: "1s"}}></div>
+      <style>{spinClockwise + spinAntiClockwise}</style>
+      <TechSphere />
       
-      {/* Grid overlay for tech effect */}
       <div className="absolute inset-0 pointer-events-none"></div>
       
       <div className="container relative z-10 mx-auto px-4 pt-32 pb-20 flex flex-col lg:flex-row items-center">
+        
         <div className="flex-1 lg:pr-8 space-y-8 text-center lg:text-left mb-12 lg:mb-0">
           <div className="inline-block px-4 py-1.5 rounded-full bg-orange/10 border border-orange/20 text-orange-light font-medium text-sm mb-4">
             Premium Software Development Services
@@ -61,10 +198,10 @@ export default function Hero() {
           </p>
           
           <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
-            <Button size="lg" className="bg-orange hover:bg-orange-light text-black font-medium px-6">
+            <Button className="bg-orange hover:bg-orange-light text-black font-medium px-6 py-3">
               Start Your Project
             </Button>
-            <Button size="lg" variant="outline" className="border-orange hover:bg-orange/10 text-orange-light">
+            <Button className="border-2 border-orange hover:bg-orange/10 text-orange-light px-6 py-3">
               View Portfolio
             </Button>
           </div>
@@ -81,39 +218,57 @@ export default function Hero() {
           </div>
         </div>
         
-        {/* 3D visualization side */}
-        <div className="flex-1 relative">
-          <div className="perspective-container relative z-10 w-full max-w-lg mx-auto">
-            {/* 3D Tech Sphere */}
-            <div className="absolute inset-0 flex items-center justify-center animate-float">
+        {/* Right side: New 3D visualization */}
+        <div className="flex-1 relative mt-12 lg:mt-0 flex items-center justify-center pointer-events-none">
+          <div className="perspective-container relative w-full h-80 max-w-sm mx-auto flex items-center justify-center">
+            {/* Small central globe */}
+            <div className="absolute w-40 h-40 flex items-center justify-center z-20">
               <TechSphere />
             </div>
-            
-            {/* Floating code snippet */}
-            <div className="hover-3d w-full max-w-sm mx-auto mb-8 shadow-xl relative z-30">
-              <AnimatedCode 
-                codeSnippets={codeExamples.typescript}
-                language="typescript"
-              />
+
+            {/* Icons on Rings */}
+            {/* Outer Ring: MERN, Java, WordPress (clockwise) */}
+            <div className="absolute w-96 h-96 rounded-full border border-orange-500/20 z-10" style={{ animation: 'spinClockwise 40s linear infinite' }}>
+              {MernStackIcons.map((icon, index) => (
+                <div key={index} className="absolute top-1/2 left-1/2 -mt-6 -ml-6 w-12 h-12 hover-3d pointer-events-auto" style={{
+                  transform: `rotate(${index * (360 / MernStackIcons.length)}deg) translate(192px) rotate(${-(index * (360 / MernStackIcons.length))}deg)`
+                }}>
+                  <div className="w-full h-full flex items-center justify-center p-2 rounded-lg bg-black/40 backdrop-blur-lg border border-orange-700 shadow-orange-glow animate-float">
+                    <img src={icon.src} alt={icon.alt} className="w-8 h-8" />
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            {/* Floating tech badges */}
-            <div className="absolute -right-10 top-1/4 w-20 h-20 rounded-xl bg-black/40 backdrop-blur-lg border border-gray-800 shadow-neon flex items-center justify-center p-4 animate-float" style={{ animationDelay: "0.5s" }}>
-              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg" alt="React" className="w-full h-full" />
+
+            {/* Middle Ring: AI/ML (anti-clockwise) */}
+            <div className="absolute w-72 h-72 rounded-full border border-neon-cyan/20 z-10" style={{ animation: 'spinAntiClockwise 30s linear infinite' }}>
+              {AiMlIcons.map((icon, index) => (
+                <div key={index} className="absolute top-1/2 left-1/2 -mt-5 -ml-5 w-10 h-10 hover-3d pointer-events-auto" style={{
+                  transform: `rotate(${index * (360 / AiMlIcons.length)}deg) translate(144px) rotate(${-(index * (360 / AiMlIcons.length))}deg)`
+                }}>
+                  <div className="w-full h-full flex items-center justify-center p-2 rounded-lg bg-black/40 backdrop-blur-lg border border-neon-cyan shadow-neon animate-float">
+                    <img src={icon.src} alt={icon.alt} className="w-6 h-6" />
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            <div className="absolute -left-10 bottom-1/3 w-16 h-16 rounded-xl bg-black/40 backdrop-blur-lg border border-gray-800 shadow-neon-orange flex items-center justify-center p-3 animate-float" style={{ animationDelay: "1.2s" }}>
-              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" alt="TypeScript" className="w-full h-full" />
-            </div>
-            
-            <div className="absolute left-1/4 bottom-0 w-14 h-14 rounded-xl bg-black/40 backdrop-blur-lg border border-gray-800 shadow-neon flex items-center justify-center p-3 animate-float" style={{ animationDelay: "0.8s" }}>
-              <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" alt="Node.js" className="w-full h-full" />
+
+            {/* Inner Ring: Hosting/Domain (clockwise) */}
+            <div className="absolute w-48 h-48 rounded-full border border-orange-500/20 z-10" style={{ animation: 'spinClockwise 20s linear infinite' }}>
+              {HostingIcons.map((icon, index) => (
+                <div key={index} className="absolute top-1/2 left-1/2 -mt-4 -ml-4 w-8 h-8 hover-3d pointer-events-auto" style={{
+                  transform: `rotate(${index * (360 / HostingIcons.length)}deg) translate(96px) rotate(${-(index * (360 / HostingIcons.length))}deg)`
+                }}>
+                  <div className="w-full h-full flex items-center justify-center p-1 rounded-lg bg-black/40 backdrop-blur-lg border border-orange-700 shadow-orange-glow animate-float">
+                    <img src={icon.src} alt={icon.alt} className="w-5 h-5" />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
       
-      {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center space-y-2 animate-pulse-slow">
         <span className="text-sm text-gray-400">Scroll to explore</span>
         <svg className="w-6 h-6 text-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
