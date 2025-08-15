@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 // Assumes Three.js is installed locally via npm install three
 import * as THREE from 'three';
 
@@ -17,8 +17,7 @@ const Button = ({ children, className = '', ...props }) => {
 };
 
 // --- TechSphere Component ---
-// This component renders the 3D sphere as a background.
-function TechSphere() {
+function TechSphere({ size = 1.5, opacity = 0.8 }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -54,7 +53,7 @@ function TechSphere() {
     window.addEventListener('resize', handleResize);
     handleResize();
     
-    const geometry = new THREE.SphereGeometry(1.5, 64, 64);
+    const geometry = new THREE.SphereGeometry(size, 64, 64);
     const material = new THREE.MeshStandardMaterial({
       color: 0xFF8800,
       wireframe: true,
@@ -91,13 +90,14 @@ function TechSphere() {
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
     };
-  }, []);
+  }, [size]);
   
   return (
     <div className="absolute top-0 left-0 w-full h-full">
       <canvas 
         ref={canvasRef} 
-        className="w-full h-full opacity-80 z-[-1]"
+        className={`w-full h-full z-[-1]`}
+        style={{ opacity: opacity }}
       />
     </div>
   );
@@ -113,7 +113,7 @@ export default function App() {
     { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg", alt: "Express" },
     { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg", alt: "React" },
     { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg", alt: "Node.js" },
-    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/wordpress/wordpress-original.svg", alt: "WordPress" },
+    { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/wordpress/wordpress-plain.svg", alt: "WordPress" }, // Replaced with plain version for better visibility
     { src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg", alt: "Java" },
   ];
 
@@ -166,7 +166,7 @@ export default function App() {
   return (
     <div 
       ref={heroRef}
-      className="relative min-h-screen w-full overflow-hidden bg-black"
+      className="relative min-h-screen w-full overflow-hidden bg-black flex items-center justify-center"
       style={{
         "--mouse-x": "0.5",
         "--mouse-y": "0.5",
@@ -177,7 +177,7 @@ export default function App() {
       
       <div className="absolute inset-0 pointer-events-none"></div>
       
-      <div className="container relative z-10 mx-auto px-4 pt-32 pb-20 flex flex-col lg:flex-row items-center">
+      <div className="container relative z-10 mx-auto px-4 pt-20 pb-20 flex flex-col lg:flex-row items-center justify-center">
         
         <div className="flex-1 lg:pr-8 space-y-8 text-center lg:text-left mb-12 lg:mb-0">
           <div className="inline-block px-4 py-1.5 rounded-full bg-orange/10 border border-orange/20 text-orange-light font-medium text-sm mb-4">
@@ -220,18 +220,18 @@ export default function App() {
         
         {/* Right side: New 3D visualization */}
         <div className="flex-1 relative mt-12 lg:mt-0 flex items-center justify-center pointer-events-none">
-          <div className="perspective-container relative w-full h-80 max-w-sm mx-auto flex items-center justify-center">
+          <div className="perspective-container relative w-full h-[500px] max-w-sm mx-auto flex items-center justify-center">
             {/* Small central globe */}
-            <div className="absolute w-40 h-40 flex items-center justify-center z-20">
-              <TechSphere />
+            <div className="absolute w-48 h-48 flex items-center justify-center z-20">
+              <TechSphere size={1.8} opacity={1} />
             </div>
 
             {/* Icons on Rings */}
             {/* Outer Ring: MERN, Java, WordPress (clockwise) */}
-            <div className="absolute w-96 h-96 rounded-full border border-orange-500/20 z-10" style={{ animation: 'spinClockwise 40s linear infinite' }}>
+            <div className="absolute w-[450px] h-[450px] rounded-full border border-orange-500/20 z-10" style={{ animation: 'spinClockwise 40s linear infinite' }}>
               {MernStackIcons.map((icon, index) => (
                 <div key={index} className="absolute top-1/2 left-1/2 -mt-6 -ml-6 w-12 h-12 hover-3d pointer-events-auto" style={{
-                  transform: `rotate(${index * (360 / MernStackIcons.length)}deg) translate(192px) rotate(${-(index * (360 / MernStackIcons.length))}deg)`
+                  transform: `rotate(${index * (360 / MernStackIcons.length)}deg) translate(225px) rotate(${-(index * (360 / MernStackIcons.length))}deg)`
                 }}>
                   <div className="w-full h-full flex items-center justify-center p-2 rounded-lg bg-black/40 backdrop-blur-lg border border-orange-700 shadow-orange-glow animate-float">
                     <img src={icon.src} alt={icon.alt} className="w-8 h-8" />
@@ -241,10 +241,10 @@ export default function App() {
             </div>
 
             {/* Middle Ring: AI/ML (anti-clockwise) */}
-            <div className="absolute w-72 h-72 rounded-full border border-neon-cyan/20 z-10" style={{ animation: 'spinAntiClockwise 30s linear infinite' }}>
+            <div className="absolute w-[350px] h-[350px] rounded-full border border-neon-cyan/20 z-10" style={{ animation: 'spinAntiClockwise 30s linear infinite' }}>
               {AiMlIcons.map((icon, index) => (
                 <div key={index} className="absolute top-1/2 left-1/2 -mt-5 -ml-5 w-10 h-10 hover-3d pointer-events-auto" style={{
-                  transform: `rotate(${index * (360 / AiMlIcons.length)}deg) translate(144px) rotate(${-(index * (360 / AiMlIcons.length))}deg)`
+                  transform: `rotate(${index * (360 / AiMlIcons.length)}deg) translate(175px) rotate(${-(index * (360 / AiMlIcons.length))}deg)`
                 }}>
                   <div className="w-full h-full flex items-center justify-center p-2 rounded-lg bg-black/40 backdrop-blur-lg border border-neon-cyan shadow-neon animate-float">
                     <img src={icon.src} alt={icon.alt} className="w-6 h-6" />
@@ -254,10 +254,10 @@ export default function App() {
             </div>
 
             {/* Inner Ring: Hosting/Domain (clockwise) */}
-            <div className="absolute w-48 h-48 rounded-full border border-orange-500/20 z-10" style={{ animation: 'spinClockwise 20s linear infinite' }}>
+            <div className="absolute w-[250px] h-[250px] rounded-full border border-orange-500/20 z-10" style={{ animation: 'spinClockwise 20s linear infinite' }}>
               {HostingIcons.map((icon, index) => (
                 <div key={index} className="absolute top-1/2 left-1/2 -mt-4 -ml-4 w-8 h-8 hover-3d pointer-events-auto" style={{
-                  transform: `rotate(${index * (360 / HostingIcons.length)}deg) translate(96px) rotate(${-(index * (360 / HostingIcons.length))}deg)`
+                  transform: `rotate(${index * (360 / HostingIcons.length)}deg) translate(125px) rotate(${-(index * (360 / HostingIcons.length))}deg)`
                 }}>
                   <div className="w-full h-full flex items-center justify-center p-1 rounded-lg bg-black/40 backdrop-blur-lg border border-orange-700 shadow-orange-glow animate-float">
                     <img src={icon.src} alt={icon.alt} className="w-5 h-5" />
