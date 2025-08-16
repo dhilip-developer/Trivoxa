@@ -18,7 +18,7 @@ const Button = ({ children, className = '', ...props }) => {
 };
 
 const handleScrollToPortfolio = () => {
-        const portfolioSection = document.getElementById('services');
+        const portfolioSection = document.getElementById('work');
         if (portfolioSection) {
             portfolioSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
