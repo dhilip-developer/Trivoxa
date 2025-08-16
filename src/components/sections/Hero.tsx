@@ -229,14 +229,14 @@ function HeroSection() {
             {/* ✅ OPTIMIZED: Adjusted padding for mobile */}
             <div className="container relative z-10 mx-auto px-4 pt-16 pb-16 lg:pt-20 lg:pb-20 flex flex-col lg:flex-row items-center justify-center">
                 
-                <div className="flex-1 lg:pr-8 space-y-6 md:space-y-8 text-center lg:text-left mb-12 lg:mb-0">
-                    <div className="inline-block px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 font-medium text-sm mb-4">
+                <div className="flex-1 lg:pr-8 space-y-6 md:space-y-8 text-center lg:text-left mb- lg:mb-0">
+                    <div className="inline-block px-4 py-3 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 font-medium text-sm mb-4 mt-10">
                         Premium Software Development Services
                     </div>
                     
                     {/* ✅ OPTIMIZED: Adjusted heading size for mobile */}
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-                        <span className="bg-gradient-to-r from-orange-300 via-white to-orange-300 bg-clip-text text-transparent pb-2 block">
+                    <h1 className="text-5xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                        <span className="bg-gradient-to-r from-orange-300 via-white to-orange-300 bg-clip-text text-transparent pb-10 block">
                             Transforming Ideas Into
                         </span>
                         <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-orange-500 bg-clip-text text-transparent block">
@@ -277,7 +277,7 @@ function HeroSection() {
                 </div>
                 
                 {/* ✅ OPTIMIZED: Scaled down the entire 3D visualization container on smaller screens */}
-                <div className="flex-1 relative mt-12 lg:mt-0 flex items-center justify-center pointer-events-none scale-75 sm:scale-90 lg:scale-100">
+                <div className="flex-1 relative mt-0 lg:mt-0 flex items-center justify-center pointer-events-none scale-75 sm:scale-90 lg:scale-100">
                     <div className="relative w-full h-[500px] max-w-sm mx-auto flex items-center justify-center">
                         <div className="absolute w-48 h-48 flex items-center justify-center z-20">
                             <TechSphere size={1.8} opacity={1} isNeon={true} />
