@@ -156,18 +156,7 @@ export default function App() {
     return (
         <div className="bg-black text-white">
             <HeroSection />
-            {/* The ID here MUST match the ID used in the handleScrollTo function. */}
-            <div id="Projects" className="min-h-screen container mx-auto px-4 py-20">
-                <h2 className="text-4xl font-bold text-center mb-12">
-                    <span className="bg-gradient-to-r from-orange-300 via-white to-orange-300 bg-clip-text text-transparent">
-                        Our Projects
-                    </span>
-                </h2>
-                <div className="text-center text-gray-400">
-                    <p>Your project portfolio content would be displayed here.</p>
-                    <p>This section has the ID "Projects", so the button will scroll to it.</p>
-                </div>
-            </div>
+            
         </div>
     );
 }
