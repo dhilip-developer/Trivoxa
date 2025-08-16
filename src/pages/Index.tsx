@@ -8,6 +8,8 @@ import About from "@/components/sections/About";
 import Footer from "@/components/layout/Footer";
 import Contact from "@/components/sections/Contact"
 
+
+
 export default function Index() {
   useEffect(() => {
     // Load Three.js from CDN if needed
