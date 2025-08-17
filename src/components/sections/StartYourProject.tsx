@@ -125,7 +125,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
         }
 
         setIsSubmitting(true);
-        showMessage('Sending...', 'bg-blue-200 text-blue-800');
+        showMessage('Sending...', 'bg-orange-500 text-white');
 
         try {
             await window.emailjs.send(SERVICE_ID, TEMPLATE_ID, {
@@ -191,29 +191,29 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                 
                                 <Dialog.Title
                                     as="h1"
-                                    className="text-4xl font-extrabold text-white mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500"
+                                    className="text-4xl font-extrabold text-gradient-to-r from-amber-300 to-orange-500 mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500"
                                 >
                                     Start Your Project
                                 </Dialog.Title>
-                                <p className="text-gray-300 mb-10 text-center">Tell us about your project and we'll get in touch!</p>
+                                <p className="text-orange-200 mb-10 text-center">Tell us about your project and we'll get in touch!</p>
                                 
                                 {/* Progress Bar */}
                                 <div className="flex items-center justify-center mb-10 relative">
                                     {/* Connecting Line */}
                                     <div className={`absolute h-1 bg-gray-700 rounded-full transition-all duration-500`} style={{ width: 'calc(100% - 80px)' }}>
-                                        <div className={`h-full bg-gradient-to-r from-teal-400 to-blue-500 rounded-full transition-all duration-500 ${step > 1 ? 'w-full' : 'w-0'}`}></div>
+                                        <div className={`h-full bg-gradient-to-r from-yellow-200 via-amber-200 to-amber-300 tobg-gradient-to-r from-red-500 to-orange-500 rounded-full transition-all duration-500 ${step > 1 ? 'w-full' : 'w-0'}`}></div>
                                     </div>
 
                                     {/* Step Icons */}
                                     <div className="flex justify-between w-full z-10">
                                         <div className="flex flex-col items-center">
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 relative ${step >= 1 ? 'bg-gradient-to-r from-teal-400 to-blue-500' : 'bg-gray-700'}`}>
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 relative ${step >= 1 ? 'bg-gradient-to-r from-amber-300 via-orange-500 to-amber-700' : 'bg-gradient-to-r from-yellow-200 via-amber-200 to-amber-300'}`}>
                                                 <UserCircleIcon className={`h-6 w-6 text-gray-900 transition-all duration-300 ${step !== 1 ? 'text-gray-400' : 'text-gray-900'}`} />
                                             </div>
                                             <span className="text-sm text-gray-400 mt-2">Personal</span>
                                         </div>
                                         <div className="flex flex-col items-center">
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 relative ${step >= 2 ? 'bg-gradient-to-r from-teal-400 to-blue-500' : 'bg-gray-700'}`}>
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 relative ${step >= 2 ? 'bg-gradient-to-r from-amber-300 via-orange-500 to-amber-700' : 'bg-gradient-to-r from-yellow-200 via-amber-200 to-amber-300'}`}>
                                                 <BriefcaseIcon className={`h-6 w-6 text-gray-900 transition-all duration-300 ${step !== 2 ? 'text-gray-400' : 'text-gray-900'}`} />
                                             </div>
                                             <span className="text-sm text-gray-400 mt-2">Project</span>
@@ -236,7 +236,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     onChange={handleInputChange}
                                                     autoComplete="name"
                                                     required
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
                                                 />
                                             </div>
                                             <div>
@@ -248,7 +248,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     value={formData.userAge}
                                                     onChange={handleInputChange}
                                                     required
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
                                                 />
                                             </div>
                                              <div>
@@ -259,13 +259,13 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                         value={formData.userCategory}
                                                         onChange={handleInputChange}
                                                         required
-                                                        className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition duration-200"
+                                                        className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
                                                     >
-                                                        <option value="" disabled className="bg-gray-800 text-gray-400">Select an option</option>
-                                                        <option value="Student" className="bg-gray-800 text-white">Student</option>
-                                                        <option value="Business Professional" className="bg-gray-800 text-white">Business Professional</option>
-                                                        <option value="Freelancer" className="bg-gray-800 text-white">Freelancer</option>
-                                                        <option value="Other" className="bg-gray-800 text-white">Other</option>
+                                                        <option value="" disabled className="bg-orange-700 text-black">Select an option</option>
+                                                        <option value="Student" className="bg-orange-500 text-white">Student</option>
+                                                        <option value="Business Professional" className="bg-orange-500 text-white">Business Professional</option>
+                                                        <option value="Freelancer" className="bg-orange-500 text-white">Freelancer</option>
+                                                        <option value="Other" className="bg-orange-500 text-white">Other</option>
                                                     </select>
                                                 </div>
                                             <div>
@@ -278,13 +278,13 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     onChange={handleInputChange}
                                                     autoComplete="tel"
                                                     required
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
                                                 />
                                             </div>
                                             <div className="flex justify-between mt-8">
                                                 <Button
                                                     type="button"
-                                                    className="border-2 border-teal-500 hover:bg-teal-500/20 text-teal-300 px-6 py-3"
+                                                    className="border-2 border-orange-500 to-amber-700  hover:bg-gradient-to-r from-red-500 to-orange-500 px-6 py-3"
                                                     onClick={closeModal}
                                                 >
                                                     &larr; Back to Home
@@ -292,7 +292,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                 <button
                                                     type="button"
                                                     onClick={handleNext}
-                                                    className="px-8 py-3 bg-gradient-to-r from-teal-400 to-blue-500 text-black font-semibold rounded-full shadow-md hover:from-teal-500 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="px-8 py-3 bg-gradient-to-r from-amber-300 to-orange-500 text-black font-semibold rounded-full shadow-md hover:from-red-500 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     Next &rarr;
                                                 </button>
@@ -311,7 +311,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     name="businessName"
                                                     value={formData.businessName}
                                                     onChange={handleInputChange}
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
                                                 />
                                             </div>
                                             <div>
@@ -322,7 +322,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     name="businessAddress"
                                                     value={formData.businessAddress}
                                                     onChange={handleInputChange}
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400 transition duration-200"
                                                 />
                                             </div>
                                             <div>
@@ -334,21 +334,21 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     onChange={handleInputChange}
                                                     rows={6}
                                                     required
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
                                                 ></textarea>
                                             </div>
                                             <div className="flex justify-between mt-8">
                                                 <button
                                                     type="button"
                                                     onClick={handleBack}
-                                                    className="px-6 py-3 border-2 border-gray-500 text-gray-300 font-semibold rounded-full hover:bg-gray-500/20 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-200"
+                                                    className="px-6 py-3 border-2 border-orange-500 text-gray-300 font-semibold rounded-full hover:bg-gradient-to-r from-red-500 to-orange-500 from-amber-300 to-orange-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-200"
                                                 >
                                                     &larr; Back
                                                 </button>
                                                 <button
                                                     type="submit"
                                                     disabled={isSubmitting}
-                                                    className="px-8 py-3 bg-gradient-to-r from-teal-400 to-blue-500 text-black font-semibold rounded-full shadow-md hover:from-teal-500 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="px-8 py-3 bg-gradient-to-r from-amber-300 to-orange-500 text-black font-semibold rounded-full shadow-md hover:from-red-500 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     {isSubmitting ? 'Sending...' : 'Submit Project'}
                                                 </button>

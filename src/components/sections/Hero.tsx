@@ -1,27 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from 'three';
+import { StartYourProject } from './StartYourProject'; // Assuming this component exists
 
-// --- Placeholder for the StartYourProject Component ---
-// In your actual project, you would import this from its own file.
-const StartYourProject = ({ isOpen, closeModal }) => {
-    if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-900 border border-orange-500/50 rounded-lg p-8 max-w-md w-full relative text-white">
-                <button 
-                    onClick={closeModal}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-                <h2 className="text-2xl font-bold mb-4 text-orange-300">Start Your Project</h2>
-                <p className="text-gray-300">This is a placeholder for your project inquiry form.</p>
-                {/* You would typically have a form here */}
-            </div>
-        </div>
-    );
-};
 
 
 // --- Self-Contained Button Component ---
@@ -220,7 +201,7 @@ function HeroSection() {
     };
 
     return (
-        <div ref={heroRef} className="relative min-h-screen w-full overflow-x-hidden bg-black flex flex-col items-center justify-center">
+        <div id="Hero" ref={heroRef} className="relative min-h-screen w-full overflow-x-hidden bg-black flex flex-col items-center justify-center">
             <style>{spinClockwise + spinAntiClockwise}</style>
             <TechSphere />
             
@@ -257,10 +238,11 @@ function HeroSection() {
                             Start Your Project
                         </Button>
                         <Button 
-                            className="border-2 border-orange-500 hover:bg-orange-500/10 text-orange-300 px-6 py-3"
-                            onClick={() => handleScrollTo('#Projects')}
+                            className="border-2 border-orange hover:bg-orange/10 text-orange-light px-6 py-3"
+                            // ✅ Correctly calls the reusable handler
+                            onClick={() => handleScrollTo('#services')}
                         >
-                            View Projects 
+                            Explore Our Services 
                         </Button>
                     </div>
                     
