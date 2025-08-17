@@ -105,7 +105,7 @@ export default function Work() {
         </div>
         
         {/* Projects grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredProjects.map((project, index) => (
             <Card 
               key={index}
@@ -113,7 +113,7 @@ export default function Work() {
               onMouseEnter={() => setHoveredProject(index)}
               onMouseLeave={() => setHoveredProject(null)}
             >
-              <div className="relative h-56 overflow-hidden">
+              <div className="relative h-40 sm:h-56 overflow-hidden">
                 <img 
                   src={project.image} 
                   alt={project.title} 
@@ -122,25 +122,25 @@ export default function Work() {
                 
                 {/* Overlay on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex items-center justify-center transition-opacity duration-300 ${hoveredProject === index ? 'opacity-100' : 'opacity-0'}`}>
-                  <Button className="bg-orange hover:bg-orange-light text-black font-medium">
+                  <Button className="bg-orange hover:bg-orange-light text-black font-medium text-xs md:text-sm px-3 py-1 md:px-6 md:py-3">
                     View Project
                   </Button>
                 </div>
                 
                 {/* Category badge */}
-                <Badge className="absolute top-3 left-3 bg-black/70 text-orange border-none">
+                <Badge className="absolute top-2 left-2 text-xs md:text-sm bg-black/70 text-orange border-none">
                   {project.category}
                 </Badge>
               </div>
               
-              <CardContent className="p-5">
-                <h3 className="text-xl font-bold text-white mb-2 group-hover:text-orange-light transition-colors">
+              <CardContent className="p-4 md:p-5">
+                <h3 className="text-sm md:text-xl font-bold text-white mb-1 group-hover:text-orange-light transition-colors">
                   {project.title}
                 </h3>
-                <p className="text-gray-400 text-sm mb-4">
+                <p className="text-gray-400 text-xs md:text-sm mb-2 md:mb-4">
                   {project.description}
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1 md:gap-2">
                   {project.tags.map((tag, i) => (
                     <div key={i} className="text-xs px-2 py-1 bg-black/70 border border-gray-800 rounded-full text-gray-300">
                       {tag}
@@ -152,8 +152,8 @@ export default function Work() {
           ))}
         </div>
         
-        <div className="mt-12 text-center">
-          <Button className="bg-transparent border border-orange text-orange hover:bg-orange hover:text-black">
+        <div className="mt-8 md:mt-12 text-center">
+          <Button className="bg-transparent border border-orange text-orange hover:bg-orange hover:text-black px-4 py-2 md:px-6 md:py-3 text-sm md:text-base">
             View All Projects
           </Button>
         </div>

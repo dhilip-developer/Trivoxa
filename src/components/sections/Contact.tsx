@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Linkedin, Instagram, MessageCircle, Mail, MapPin, X,Phone } from "lucide-react";
+import { Linkedin, Instagram, MessageCircle, Mail, MapPin, X, Phone } from "lucide-react";
 
 // --- Button Component ---
 const Button = ({ children, className = "", ...props }) => {
@@ -17,6 +17,7 @@ const Button = ({ children, className = "", ...props }) => {
 const App = () => {
   // State to manage the visibility of the location message box
   const [showLocationMessage, setShowLocationMessage] = useState(false);
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   // Social links with correct URL formats and a new tab target
   const socialLinks = [
@@ -39,12 +40,7 @@ const App = () => {
       href: "mailto:trivoxatechnology@gmail.com" 
     },
     { name: "Location", icon: <MapPin className="w-8 h-8" />, href: "#" },
-    { 
-      name: "Mail", 
-      icon: <Phone className="w-8 h-8" />, 
-      // Mail links use the "mailto:" protocol
-      href:"tel:6374106956" 
-    } // Removed the old link
+    // Removed the old link
   ];
 
   const floatAnimation = `@keyframes float3D {
@@ -104,9 +100,16 @@ const App = () => {
             ))}
           </div>
 
-          {/* Contact Button */}
-          <Button className="w-full max-w-xs py-4 bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold text-lg rounded-full shadow-lg transition-all">
-            Let's Talk
+          {/* Animated "Let's Talk" Button */}
+          <Button 
+            className="w-full max-w-xs py-5 md:py-5 bg-orange-500 hover:bg-orange-600 text-gray-900 font-bold text-lg rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95"
+            onClick={() => setIsFormVisible(true)}
+          ><a href="tel:6374106956">
+            <span className="flex items-center justify-center">
+              <Phone  className="w-5 h-5  mr-3" />
+              Let's Talk
+            </span>
+            </a>
           </Button>
         </div>
       </div>
