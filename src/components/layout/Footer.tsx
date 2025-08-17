@@ -29,13 +29,22 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-10">
           {/* Logo and info */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
-            <a href="/" className="flex flex-col items-center md:items-start gap-2 mb-6">
+            <a
+              href="/"
+              className="flex flex-col items-center md:items-start gap-2 mb-6"
+            >
               <div className="relative">
-                <div className="text-orange-light font-bold text-2xl tracking-tight">
-                  <img src={logoImage} alt="Trivoxa Logo" className="h-8 w-auto mx-auto md:mx-0" />
+                <div className=" flex  text-orange-light font-bold text-2xl tracking-tight">
+                  <img
+                    src={logoImage}
+                    alt="Trivoxa Logo"
+                    className="h-8 w-auto mx-auto md:mx-0"
+                  />
+                  <span className="text-orange-light font-bold text-2xl tracking-tight">
+                    Trivoxa
+                  </span>
                 </div>
               </div>
-              <span className="text-orange-light font-bold text-2xl tracking-tight">Trivoxa</span>
             </a>
             <p className="text-gray-400 mb-6 max-w-sm">
               Premium software development services to transform your ideas into
