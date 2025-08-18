@@ -9,7 +9,7 @@ const projects = [
   {
     title: "Cloud kitchen Food Ordering",
     description: "Interactive financial analytics platform with real-time data visualization and AI-powered insights.",
-    image: Cloudkitchen, // FIX: Correctly referencing the imported image
+    image: Cloudkitchen,
     category: "Web App",
     tags: ["React", "TypeScript", "Node.js"],
     url: "https://www.a1cookinghub.com/"
@@ -60,7 +60,7 @@ const categories = ["All", "Web App", "Mobile App", "Blockchain", "E-commerce", 
 
 export default function Work() {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [hoveredProject, setHoveredProject] = useState(null);
+  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
   
   const filteredProjects = activeCategory === "All" 
     ? projects 
@@ -124,9 +124,12 @@ export default function Work() {
                 
                 {/* Overlay on hover */}
                 <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent flex items-center justify-center transition-opacity duration-300 ${hoveredProject === index ? 'opacity-100' : 'opacity-0'}`}>
-                  <Button className="bg-orange hover:bg-orange-light text-black font-medium text-xs md:text-sm px-3 py-1 md:px-6 md:py-3">
-                    View Project
-                  </Button>
+                  {/* FIX: Use an anchor tag with the project URL */}
+                  <a href={project.url} target="_blank" rel="noopener noreferrer">
+                    <Button className="bg-orange hover:bg-orange-light text-black font-medium text-xs md:text-sm px-3 py-1 md:px-6 md:py-3">
+                      View Project
+                    </Button>
+                  </a>
                 </div>
                 
                 {/* Category badge */}
