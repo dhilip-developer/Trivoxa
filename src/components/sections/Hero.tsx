@@ -254,7 +254,7 @@ function HeroSection() {
                         </div>
                         <span>+10 Technologies</span>
                         <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
-                        <span>5+ Years Experience</span>
+                        <span>Gainig Experience Through Realworld Projects</span>
                     </div>
                 </div>
                 

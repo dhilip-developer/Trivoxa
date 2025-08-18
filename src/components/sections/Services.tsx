@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { StartYourProject } from './StartYourProject';
 
 // --- Placeholder for Shadcn/ui components ---
-// We are using a simplified version of your components for this self-contained example.
 const Card = ({ children, className }) => <div className={`p-4 md:p-6 border rounded-lg ${className}`}>{children}</div>;
 const CardHeader = ({ children }) => <div className="mb-2 md:mb-4">{children}</div>;
 const CardTitle = ({ children, className }) => <h3 className={`font-semibold text-base md:text-lg ${className}`}>{children}</h3>;
 const CardDescription = ({ children, className }) => <p className={`text-xs md:text-sm text-gray-400 ${className}`}>{children}</p>;
 const CardContent = ({ children }) => <div>{children}</div>;
-
-
 const Button = ({ children, className = '', ...props }) => {
     const baseClasses = "rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500";
     const finalClassNames = `${baseClasses} ${className}`;
@@ -22,7 +19,6 @@ const Button = ({ children, className = '', ...props }) => {
         </button>
     );
 };
-
 
 
 // --- Data for the Service Cards ---
@@ -55,7 +51,7 @@ const services = [
         ),
         title: "Backend Development",
         description: "Secure, scalable, and high-performance backend systems that power your applications.",
-        features: ["Node.js/Express", "Python/Django", "Databases", "API Design"]
+        features: ["Node.js/Express", "Databases", "API Design"]
     },
     {
         icon: (
@@ -65,7 +61,7 @@ const services = [
         ),
         title: "UI/UX Design",
         description: "User-centered designs that combine aesthetics with functionality to create engaging digital experiences.",
-        features: ["Figma/Adobe XD", "Prototyping", "User Testing", "Design Systems"]
+        features: ["Figma", "Prototyping", "User Testing", "Design Systems"]
     },
     {
         icon: (
@@ -112,30 +108,57 @@ export default function Services() {
                 
                 {/* Updated grid to display two columns on mobile */}
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    {services.map((service, index) => (
-                        <Card key={index} className="bg-tech-dark/50 backdrop-blur-sm border-gray-800 hover:border-orange/50 transition-all hover:shadow-lg hover:shadow-orange/10 hover:-translate-y-1 overflow-hidden group">
-                            <CardHeader>
-                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-orange/10 flex items-center justify-center text-orange-light mb-2 md:mb-4 group-hover:bg-orange/20 transition-colors">
-                                    {service.icon}
-                                </div>
-                                <CardTitle className="text-base md:text-xl text-orange-light">
-                                    {service.title}
-                                </CardTitle>
-                                <CardDescription className="text-xs md:text-gray-400">
-                                    {service.description}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex flex-wrap gap-1 md:gap-2 mt-2">
-                                    {service.features.map((feature, i) => (
-                                        <div key={i} className="px-2 py-0.5 text-xs bg-black/30 border border-gray-800 rounded-full text-gray-300">
-                                            {feature}
+                    {services.map((service, index) => {
+                        const isComingSoon = service.title === "AI & ML Integration" || service.title === "Blockchain Development";
+                        
+                        if (isComingSoon) {
+                            return (
+                                <Card 
+                                    key={index} 
+                                    className="bg-tech-dark/50 backdrop-blur-sm border-gray-800 transition-all overflow-hidden"
+                                >
+                                    <CardHeader>
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-orange/10 flex items-center justify-center text-orange-light mb-2 md:mb-4">
+                                            {service.icon}
                                         </div>
-                                    ))}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                        <CardTitle className="text-base md:text-xl text-orange-light">
+                                            {service.title}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <span className="text-orange-light text-xs md:text-sm font-semibold border border-orange rounded-full px-3 py-1 mt-2 inline-block">
+                                            Coming Soon
+                                        </span>
+                                    </CardContent>
+                                </Card>
+                            );
+                        }
+                        
+                        return (
+                            <Card key={index} className="bg-tech-dark/50 backdrop-blur-sm border-gray-800 hover:border-orange/50 transition-all hover:shadow-lg hover:shadow-orange/10 hover:-translate-y-1 overflow-hidden group">
+                                <CardHeader>
+                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-orange/10 flex items-center justify-center text-orange-light mb-2 md:mb-4 group-hover:bg-orange/20 transition-colors">
+                                        {service.icon}
+                                    </div>
+                                    <CardTitle className="text-base md:text-xl text-orange-light">
+                                        {service.title}
+                                    </CardTitle>
+                                    <CardDescription className="text-xs md:text-gray-400">
+                                        {service.description}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex flex-wrap gap-1 md:gap-2 mt-2">
+                                        {service.features.map((feature, i) => (
+                                            <div key={i} className="px-2 py-0.5 text-xs bg-black/30 border border-gray-800 rounded-full text-gray-300">
+                                                {feature}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
 
                 {/* The 'Start Your Project' Button */}
@@ -147,7 +170,6 @@ export default function Services() {
                         Service Request
                     </Button>
                 </div>
-                
             </div>
             
             {/* The modal component, controlled by state */}

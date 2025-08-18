@@ -70,7 +70,7 @@ const companyData = {
   stats: [
     { value: "3", label: "Founders" },
     { value: "2025", label: "Batch Graduates" },
-    { value: "200+", label: "Projects Delivered" },
+    { value: "10+", label: "Projects Delivered" },
   ],
   skills: [
     { label: "MERN STACK Development", percentage: 95, color: "orange" },

@@ -2,23 +2,25 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Cloudkitchen from "@/Assets/CloudKItchen.png"
+import MountTennaProject from "@/Assets/MountTennaProject.png"
 
 const projects = [
   {
-    title: "TechFinance Dashboard",
+    title: "Cloud kitchen Food Ordering",
     description: "Interactive financial analytics platform with real-time data visualization and AI-powered insights.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop",
+    image: Cloudkitchen, // FIX: Correctly referencing the imported image
     category: "Web App",
-    tags: ["React", "TypeScript", "D3.js", "Node.js"],
-    url: "#"
+    tags: ["React", "TypeScript", "Node.js"],
+    url: "https://www.a1cookinghub.com/"
   },
   {
-    title: "MediConnect",
+    title: "Tourister Website",
     description: "Healthcare mobile application connecting patients with doctors for virtual consultations and appointment scheduling.",
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=2070&auto=format&fit=crop",
-    category: "Mobile App",
-    tags: ["React Native", "Firebase", "Redux", "API Integration"],
-    url: "#"
+    image:MountTennaProject ,
+    category: "Web App",
+    tags: ["Wordpress Website"],
+    url: "https://mountteenamunnarvilla.com/"
   },
   {
     title: "EcoTrack",
@@ -58,7 +60,7 @@ const categories = ["All", "Web App", "Mobile App", "Blockchain", "E-commerce", 
 
 export default function Work() {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [hoveredProject, setHoveredProject] = useState<number | null>(null);
+  const [hoveredProject, setHoveredProject] = useState(null);
   
   const filteredProjects = activeCategory === "All" 
     ? projects 
@@ -81,7 +83,7 @@ export default function Work() {
             </span>
           </h2>
           <p className="text-lg text-gray-300">
-            A showcase of my best work across various industries and technologies, demonstrating expertise in creating innovative digital solutions.
+              A showcase of my best work across various industries and technologies, demonstrating expertise in creating innovative digital solutions.
           </p>
         </div>
         
