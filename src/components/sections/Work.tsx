@@ -142,7 +142,7 @@ export default function Work() {
                 <h3 className="text-sm md:text-xl font-bold text-white mb-1 group-hover:text-orange-light transition-colors">
                   {project.title}
                 </h3>
-                <p className="text-gray-400 text-xs md:text-sm mb-2 md:mb-4">
+                <p className="hidden md:block text-gray-400 text-xs md:text-sm mb-2 md:mb-4">
                   {project.description}
                 </p>
                 <div className="flex flex-wrap gap-1 md:gap-2">

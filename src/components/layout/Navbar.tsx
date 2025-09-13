@@ -1,7 +1,7 @@
 "use client"
 
-import type React from "react"
-import logoImage from "../../Assets/Trivoxa Triangle.png";
+import * as  React from "react"
+import logoImage from "../../Assets/Trivoxa Triangle.png"
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
@@ -16,8 +16,8 @@ interface NavLinkProps {
   children: React.ReactNode
   onClick: (e: React.MouseEvent<HTMLAnchorElement>) => void
   className?: string
-  isActive: boolean // New prop to determine the active state
-  isContactButton?: boolean // Added prop to handle contact button styling
+  isActive: boolean
+  isContactButton?: boolean
 }
 
 function NavLink({ href, children, onClick, className, isActive, isContactButton }: NavLinkProps) {
@@ -56,11 +56,8 @@ function NavLink({ href, children, onClick, className, isActive, isContactButton
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  // State to hold the ID of the currently active section.
-  const [activeSection, setActiveSection] = useState("")
-
-  // We use a ref to store a map of our observer entries.
-  const observerRef = useRef<Record<string, IntersectionObserverEntry>>({})
+  const [activeSection, setActiveSection] = useState("Hero") // Set initial active section to "Hero"
+  const observerRef = useRef<Map<string, IntersectionObserverEntry>>(new Map())
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,36 +65,37 @@ export default function Navbar() {
     }
 
     window.addEventListener("scroll", handleScroll)
-
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   useEffect(() => {
-    // This effect sets up the IntersectionObserver to track active sections.
     const sections = document.querySelectorAll("section[id]")
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          // Update the map with the current intersection state.
-          observerRef.current[entry.target.id] = entry
+          observerRef.current.set(entry.target.id, entry)
         })
 
-        const visibleSections = Object.values(observerRef.current)
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+        const visibleSections = Array.from(observerRef.current.values()).filter(
+          (entry) => entry.isIntersecting,
+        )
 
+        // Find the top-most visible section based on its position in the viewport.
         if (visibleSections.length > 0) {
-          setActiveSection(visibleSections[0].target.id)
+          const topVisibleSection = visibleSections.reduce((prev, curr) =>
+            curr.boundingClientRect.top < prev.boundingClientRect.top ? curr : prev,
+          )
+          setActiveSection(topVisibleSection.target.id)
         }
       },
-      { threshold: [0.1, 0.5, 0.9], rootMargin: "-80px 0px -80px 0px" },
+      // Using a threshold of 0.2 and a margin of 80px to account for the navbar height.
+      { threshold: 0.2, rootMargin: "-80px 0px -80px 0px" },
     )
 
     sections.forEach((section) => {
       observer.observe(section)
     })
 
-    // Cleanup function to disconnect the observer when the component unmounts.
     return () => {
       sections.forEach((section) => {
         observer.unobserve(section)
@@ -105,21 +103,15 @@ export default function Navbar() {
     }
   }, [])
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false)
-  }
-
   const handleScrollTo = (sectionId: string) => {
-    const section = document.querySelector(sectionId)
+    const section = document.getElementById(sectionId)
     if (section) {
+      // Manually set the active section before scrolling.
+      setActiveSection(sectionId)
       section.scrollIntoView({ behavior: "smooth", block: "start" })
-      closeMobileMenu()
+      setIsMobileMenuOpen(false) // Close mobile menu after clicking a link
     } else {
-      console.warn(`Scroll target not found: ${sectionId}`)
+      console.warn(`Scroll target not found: #${sectionId}`)
     }
   }
 
@@ -131,7 +123,7 @@ export default function Navbar() {
     >
       <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo and Brand Name */}
-        <a href="/" className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <img 
               src={logoImage} 
@@ -140,12 +132,12 @@ export default function Navbar() {
             />
             <span 
               className="text-orange-light font-bold text-2xl tracking-tight cursor-pointer" 
-              onClick={() => handleScrollTo('#Hero')}
+              onClick={() => handleScrollTo("Hero")}
             >
               Trivoxa
             </span>
           </div>
-        </a>
+        </div>
 
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-8">
@@ -153,7 +145,7 @@ export default function Navbar() {
             href="#Hero"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#Hero")
+              handleScrollTo("Hero")
             }}
             isActive={activeSection === "Hero"}
           >
@@ -163,7 +155,7 @@ export default function Navbar() {
             href="#services"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#services")
+              handleScrollTo("services")
             }}
             isActive={activeSection === "services"}
           >
@@ -173,7 +165,7 @@ export default function Navbar() {
             href="#work"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#work")
+              handleScrollTo("work")
             }}
             isActive={activeSection === "work"}
           >
@@ -183,7 +175,7 @@ export default function Navbar() {
             href="#process"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#process")
+              handleScrollTo("process")
             }}
             isActive={activeSection === "process"}
           >
@@ -193,18 +185,17 @@ export default function Navbar() {
             href="#about"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#about")
+              handleScrollTo("about")
             }}
             isActive={activeSection === "about"}
           >
             About
           </NavLink>
-
           <NavLink
             href="#Contact"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#Contact")
+              handleScrollTo("Contact")
             }}
             isActive={activeSection === "Contact"}
             isContactButton={true}
@@ -218,7 +209,7 @@ export default function Navbar() {
           variant="ghost"
           size="icon"
           className="md:hidden hover:bg-gray-700/50 transition-colors"
-          onClick={toggleMobileMenu}
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X className="w-6 h-6 text-gray-300" /> : <Menu className="w-6 h-6 text-gray-300" />}
         </Button>
@@ -226,12 +217,15 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-[75px] left-0 right-0 bg-tech-dark/95 backdrop-blur-md shadow-lg flex flex-col items-center gap-6 py-8">
+        <div 
+          className="md:hidden absolute left-0 right-0 bg-tech-dark/95 backdrop-blur-md shadow-lg flex flex-col items-center gap-6 py-8 z-40"
+          style={{ top: scrolled ? "60px" : "76px" }}
+        >
           <NavLink
             href="#Hero"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#Hero")
+              handleScrollTo("Hero")
             }}
             isActive={activeSection === "Hero"}
           >
@@ -241,7 +235,7 @@ export default function Navbar() {
             href="#services"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#services")
+              handleScrollTo("services")
             }}
             isActive={activeSection === "services"}
           >
@@ -251,7 +245,7 @@ export default function Navbar() {
             href="#work"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#work")
+              handleScrollTo("work")
             }}
             isActive={activeSection === "work"}
           >
@@ -261,7 +255,7 @@ export default function Navbar() {
             href="#process"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#process")
+              handleScrollTo("process")
             }}
             isActive={activeSection === "process"}
           >
@@ -271,18 +265,17 @@ export default function Navbar() {
             href="#about"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#about")
+              handleScrollTo("about")
             }}
             isActive={activeSection === "about"}
           >
             About
           </NavLink>
-
           <NavLink
             href="#Contact"
             onClick={(e) => {
               e.preventDefault()
-              handleScrollTo("#Contact")
+              handleScrollTo("Contact")
             }}
             isActive={activeSection === "Contact"}
             isContactButton={true}

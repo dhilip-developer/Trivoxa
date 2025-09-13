@@ -1,17 +1,17 @@
-import React, { useEffect, useRef, useState, Fragment, FC } from "react";
+import  { useEffect, useRef, useState, Fragment, FC } from "react";
 import { Dialog, Transition } from '@headlessui/react';
 import { UserCircleIcon, BriefcaseIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-// Extend the Window interface to include the emailjs property for TypeScript
+// Extend the Window interface for TypeScript compatibility with emailjs
 declare global {
     interface Window {
         emailjs: any;
     }
 }
 
-// You can create a separate file for this or keep it here
-const Button = ({ children, className = '', ...props }) => {
-    const baseClasses = "rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500";
+// A reusable Button component with a consistent style
+const Button = ({ children, className = '', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
+    const baseClasses = "rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500";
     const finalClassNames = `${baseClasses} ${className}`;
     return (
         <button
@@ -44,17 +44,15 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
         userName: '',
         userAge: '',
         userCategory: '',
-        contactNumber: '', 
+        contactNumber: '',
         businessName: '',
         businessAddress: '',
         projectRequirements: '',
     });
-    
+
     const [message, setMessage] = useState('');
     const [messageStyle, setMessageStyle] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    const formRef = useRef<HTMLFormElement>(null);
 
     // IMPORTANT: Replace with your actual EmailJS credentials
     const PUBLIC_KEY = '5y8KdjzVD5ppIrt3r';
@@ -65,7 +63,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
         script.async = true;
-        
+
         script.onload = () => {
             if (window.emailjs) {
                 window.emailjs.init(PUBLIC_KEY);
@@ -100,7 +98,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
 
     const handleNext = () => {
         if (!formData.userName || !formData.userAge || !formData.userCategory || !formData.contactNumber) {
-            showMessage('Please fill out all fields to continue.', 'bg-red-200 text-red-800');
+            showMessage('Please fill out all required fields to continue.', 'bg-red-700 text-white');
             return;
         }
         setStep(2);
@@ -110,17 +108,16 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
         setStep(1);
     };
 
-    // The fix: This function is now the onSubmit handler for the form
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         if (!formData.projectRequirements) {
-            showMessage('Please describe your project requirements.', 'bg-red-200 text-red-800');
+            showMessage('Please describe your project requirements.', 'bg-red-700 text-white');
             return;
         }
 
         if (!window.emailjs) {
-            showMessage('Email service not available. Please try again later.', 'bg-red-200 text-red-800');
+            showMessage('Email service not available. Please try again later.', 'bg-red-700 text-white');
             return;
         }
 
@@ -138,15 +135,15 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                 project_requirements: formData.projectRequirements,
             });
 
-            showMessage('Success! Your project request has been sent.', 'bg-green-200 text-green-800');
-            
+            showMessage('Success! Your project request has been sent.', 'bg-green-700 text-white');
+
             setTimeout(() => {
                 closeModal();
-            }, 1000);
+            }, 2000);
 
         } catch (error) {
             console.error('Email sending failed:', error);
-            showMessage('Failed to send your request. Please try again later.', 'bg-red-200 text-red-800');
+            showMessage('Failed to send your request. Please try again later.', 'bg-red-700 text-white');
         } finally {
             setIsSubmitting(false);
         }
@@ -154,7 +151,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
 
     return (
         <Transition appear show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-50" onClose={closeModal}>
+            <Dialog as="div" className="relative z-[100]" onClose={closeModal}>
                 <Transition.Child
                     as={Fragment}
                     enter="ease-out duration-300"
@@ -182,41 +179,40 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                 <div className="flex justify-end">
                                     <button
                                         onClick={closeModal}
-                                        className="text-gray-400 hover:text-white transition-colors focus:outline-none"
+                                        className="text-gray-400 hover:text-orange-300 transition-colors focus:outline-none"
                                         aria-label="Close"
                                     >
                                         <XMarkIcon className="h-6 w-6" />
                                     </button>
                                 </div>
-                                
+
                                 <Dialog.Title
                                     as="h1"
-                                    className="text-4xl font-extrabold text-gradient-to-r from-amber-300 to-orange-500 mb-6 text-center text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500"
+                                    className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500 mb-2 text-center"
                                 >
                                     Start Your Project
                                 </Dialog.Title>
-                                <p className="text-orange-200 mb-10 text-center">Tell us about your project and we'll get in touch!</p>
+                                <p className="text-gray-400 mb-10 text-center">Tell us about your project and we'll get in touch!</p>
                                 
                                 {/* Progress Bar */}
                                 <div className="flex items-center justify-center mb-10 relative">
-                                    {/* Connecting Line */}
-                                    <div className={`absolute h-1 bg-gray-700 rounded-full transition-all duration-500`} style={{ width: 'calc(100% - 80px)' }}>
-                                        <div className={`h-full bg-gradient-to-r from-yellow-200 via-amber-200 to-amber-300 tobg-gradient-to-r from-red-500 to-orange-500 rounded-full transition-all duration-500 ${step > 1 ? 'w-full' : 'w-0'}`}></div>
+                                    <div className={`absolute h-1 bg-white/10 rounded-full transition-all duration-500 w-[calc(100%-80px)]`}>
+                                        <div className={`h-full bg-gradient-to-r from-amber-300 to-orange-500 rounded-full transition-all duration-500 ${step > 1 ? 'w-full' : 'w-0'}`}></div>
                                     </div>
 
                                     {/* Step Icons */}
                                     <div className="flex justify-between w-full z-10">
                                         <div className="flex flex-col items-center">
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 relative ${step >= 1 ? 'bg-gradient-to-r from-amber-300 via-orange-500 to-amber-700' : 'bg-gradient-to-r from-yellow-200 via-amber-200 to-amber-300'}`}>
-                                                <UserCircleIcon className={`h-6 w-6 text-gray-900 transition-all duration-300 ${step !== 1 ? 'text-gray-400' : 'text-gray-900'}`} />
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 relative ${step >= 1 ? 'bg-gradient-to-r from-amber-300 to-orange-500 text-gray-900' : 'bg-white/10 text-gray-400'}`}>
+                                                <UserCircleIcon className={`h-6 w-6`} />
                                             </div>
-                                            <span className="text-sm text-gray-400 mt-2">Personal</span>
+                                            <span className={`text-sm mt-2 transition-colors duration-300 ${step === 1 ? 'text-white font-semibold' : 'text-gray-400'}`}>Personal</span>
                                         </div>
                                         <div className="flex flex-col items-center">
-                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 relative ${step >= 2 ? 'bg-gradient-to-r from-amber-300 via-orange-500 to-amber-700' : 'bg-gradient-to-r from-yellow-200 via-amber-200 to-amber-300'}`}>
-                                                <BriefcaseIcon className={`h-6 w-6 text-gray-900 transition-all duration-300 ${step !== 2 ? 'text-gray-400' : 'text-gray-900'}`} />
+                                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 relative ${step >= 2 ? 'bg-gradient-to-r from-amber-300 to-orange-500 text-gray-900' : 'bg-white/10 text-gray-400'}`}>
+                                                <BriefcaseIcon className={`h-6 w-6`} />
                                             </div>
-                                            <span className="text-sm text-gray-400 mt-2">Project</span>
+                                            <span className={`text-sm mt-2 transition-colors duration-300 ${step === 2 ? 'text-white font-semibold' : 'text-gray-400'}`}>Project</span>
                                         </div>
                                     </div>
                                 </div>
@@ -227,7 +223,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                     {step === 1 && (
                                         <div className="space-y-6">
                                             <div>
-                                                <label htmlFor="userName" className="block text-sm font-medium text-gray-300">Your Name</label>
+                                                <label htmlFor="userName" className="block text-sm font-medium text-gray-200">Your Name</label>
                                                 <input
                                                     type="text"
                                                     id="userName"
@@ -236,40 +232,12 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     onChange={handleInputChange}
                                                     autoComplete="name"
                                                     required
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200 placeholder-gray-500"
+                                                    placeholder="e.g., Jane Doe"
                                                 />
                                             </div>
                                             <div>
-                                                <label htmlFor="userAge" className="block text-sm font-medium text-gray-300">Your Age</label>
-                                                <input
-                                                    type="number"
-                                                    id="userAge"
-                                                    name="userAge"
-                                                    value={formData.userAge}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
-                                                />
-                                            </div>
-                                             <div>
-                                                    <label htmlFor="userCategory" className="block text-sm font-medium text-gray-300">Your Category</label>
-                                                    <select
-                                                        id="userCategory"
-                                                        name="userCategory"
-                                                        value={formData.userCategory}
-                                                        onChange={handleInputChange}
-                                                        required
-                                                        className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
-                                                    >
-                                                        <option value="" disabled className="bg-orange-700 text-black">Select an option</option>
-                                                        <option value="Student" className="bg-orange-500 text-white">Student</option>
-                                                        <option value="Business Professional" className="bg-orange-500 text-white">Business Professional</option>
-                                                        <option value="Freelancer" className="bg-orange-500 text-white">Freelancer</option>
-                                                        <option value="Other" className="bg-orange-500 text-white">Other</option>
-                                                    </select>
-                                                </div>
-                                            <div>
-                                                <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-300">Contact Number</label>
+                                                <label htmlFor="contactNumber" className="block text-sm font-medium text-gray-200">Contact Number</label>
                                                 <input
                                                     type="tel"
                                                     id="contactNumber"
@@ -278,55 +246,90 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     onChange={handleInputChange}
                                                     autoComplete="tel"
                                                     required
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200 placeholder-gray-500"
+                                                    placeholder="e.g., +1 (123) 456-7788"
                                                 />
+                                            </div>
+                                            <div className="grid sm:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label htmlFor="userAge" className="block text-sm font-medium text-gray-200">Your Age</label>
+                                                    <input
+                                                        type="number"
+                                                        id="userAge"
+                                                        name="userAge"
+                                                        value={formData.userAge}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                        className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200 placeholder-gray-500 age-input"
+                                                        placeholder="e.g., 25"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label htmlFor="userCategory" className="block text-sm font-medium text-gray-200">Your Category</label>
+                                                    <select
+                                                        id="userCategory"
+                                                        name="userCategory"
+                                                        value={formData.userCategory}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                        className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
+                                                    >
+                                                        <option value="" disabled className="bg-gray-900 text-gray-400">Select an option</option>
+                                                        <option value="Student" className="bg-gray-900 text-white">Student</option>
+                                                        <option value="Business Professional" className="bg-gray-900 text-white">Business Professional</option>
+                                                        <option value="Freelancer" className="bg-gray-900 text-white">Freelancer</option>
+                                                        <option value="Other" className="bg-gray-900 text-white">Other</option>
+                                                    </select>
+                                                </div>
                                             </div>
                                             <div className="flex justify-between mt-8">
                                                 <Button
                                                     type="button"
-                                                    className="border-2 border-orange-500 to-amber-700  hover:bg-gradient-to-r from-red-500 to-orange-500 px-6 py-3"
+                                                    className="px-6 py-3 border-2 border-orange-500 text-orange-400 hover:bg-orange-500 hover:text-white"
                                                     onClick={closeModal}
                                                 >
                                                     &larr; Back to Home
                                                 </Button>
-                                                <button
+                                                <Button
                                                     type="button"
                                                     onClick={handleNext}
-                                                    className="px-8 py-3 bg-gradient-to-r from-amber-300 to-orange-500 text-black font-semibold rounded-full shadow-md hover:from-red-500 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="px-8 py-3 bg-gradient-to-r from-amber-300 to-orange-500 text-black shadow-lg hover:from-amber-200 hover:to-orange-400"
                                                 >
                                                     Next &rarr;
-                                                </button>
+                                                </Button>
                                             </div>
                                         </div>
                                     )}
-                    
+                                
                                     {/* Step 2: Project Information */}
                                     {step === 2 && (
                                         <div className="space-y-6">
                                             <div>
-                                                <label htmlFor="businessName" className="block text-sm font-medium text-gray-300">Business Name</label>
+                                                <label htmlFor="businessName" className="block text-sm font-medium text-gray-200">Business Name</label>
                                                 <input
                                                     type="text"
                                                     id="businessName"
                                                     name="businessName"
                                                     value={formData.businessName}
                                                     onChange={handleInputChange}
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200 placeholder-gray-500"
+                                                    placeholder="e.g., Trivoxa Inc."
                                                 />
                                             </div>
                                             <div>
-                                                <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-300">Business Address</label>
+                                                <label htmlFor="businessAddress" className="block text-sm font-medium text-gray-200">Business Address</label>
                                                 <input
                                                     type="text"
                                                     id="businessAddress"
                                                     name="businessAddress"
                                                     value={formData.businessAddress}
                                                     onChange={handleInputChange}
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-400 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200 placeholder-gray-500"
+                                                    placeholder="e.g., 1234 Orange Street, Suite 500"
                                                 />
                                             </div>
                                             <div>
-                                                <label htmlFor="projectRequirements" className="block text-sm font-medium text-gray-300">Project Requirements</label>
+                                                <label htmlFor="projectRequirements" className="block text-sm font-medium text-gray-200">Project Requirements</label>
                                                 <textarea
                                                     id="projectRequirements"
                                                     name="projectRequirements"
@@ -334,24 +337,25 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                                     onChange={handleInputChange}
                                                     rows={6}
                                                     required
-                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200"
+                                                    className="mt-1 block w-full px-4 py-3 rounded-lg bg-white/5 text-white border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-orange-500 transition duration-200 placeholder-gray-500"
+                                                    placeholder="Describe your project, goals, and any specific features you need."
                                                 ></textarea>
                                             </div>
                                             <div className="flex justify-between mt-8">
-                                                <button
+                                                <Button
                                                     type="button"
                                                     onClick={handleBack}
-                                                    className="px-6 py-3 border-2 border-orange-500 text-gray-300 font-semibold rounded-full hover:bg-gradient-to-r from-red-500 to-orange-500 from-amber-300 to-orange-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-200"
+                                                    className="px-6 py-3 border-2 border-orange-500 text-orange-400 hover:bg-orange-500 hover:text-white"
                                                 >
                                                     &larr; Back
-                                                </button>
-                                                <button
+                                                </Button>
+                                                <Button
                                                     type="submit"
                                                     disabled={isSubmitting}
-                                                    className="px-8 py-3 bg-gradient-to-r from-amber-300 to-orange-500 text-black font-semibold rounded-full shadow-md hover:from-red-500 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="px-8 py-3 bg-gradient-to-r from-amber-300 to-orange-500 text-black shadow-lg hover:from-amber-200 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
                                                     {isSubmitting ? 'Sending...' : 'Submit Project'}
-                                                </button>
+                                                </Button>
                                             </div>
                                         </div>
                                     )}
@@ -359,7 +363,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                                 
                                 {/* Success/Error Message Box */}
                                 {message && (
-                                    <div className={`message-box mt-8 p-4 rounded-lg text-center font-medium ${messageStyle}`}>
+                                    <div className={`message-box mt-8 p-4 rounded-lg text-center font-medium transition-all duration-300 ${messageStyle}`}>
                                         {message}
                                     </div>
                                 )}
@@ -368,7 +372,7 @@ export const StartYourProject: FC<StartYourProjectProps> = ({ isOpen, closeModal
                     </div>
                 </div>
             </Dialog>
+            
         </Transition>
     );
-
 };

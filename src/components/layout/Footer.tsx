@@ -1,13 +1,113 @@
-import React from "react";
+import React, { useState, Fragment } from "react";
 import { Link } from "react-router-dom";
-import logoImage from "../../Assets/Trivoxa Triangle.png";
+import trivoxa from "@/Assets/trivoxa-logo.png";
+import { Dialog, Transition } from "@headlessui/react";
 
 // ---
 // ## Component: Footer
 // The main Footer component with corrected logic and JSX.
 // ---
 
+// Interface for the modal content
+interface ModalContent {
+  title: string;
+  content: string;
+}
+
+// Data for each policy section
+const policyData = {
+  privacy: {
+    title: "Privacy Policy",
+    content: `
+      <h2>1. Introduction</h2>
+      <p>This Privacy Policy describes how Trivoxa collects, uses, and protects your personal information. We are committed to safeguarding your privacy and ensuring the security of your data.</p>
+      
+      <h2>2. Information We Collect</h2>
+      <p>We may collect information you provide directly to us, such as your name, email address, and phone number when you contact us through our website. We also collect certain data automatically, including IP addresses, browser type, and usage data, to improve our services.</p>
+      
+      <h2>3. How We Use Your Information</h2>
+      <p>The information we collect is used to:</p>
+      <ul>
+        <li>Provide and maintain our services.</li>
+        <li>Communicate with you regarding our services and your inquiries.</li>
+        <li>Improve our website's functionality and user experience.</li>
+        <li>Analyze and monitor usage to better understand our audience.</li>
+        <li>Comply with legal obligations.</li>
+      </ul>
+
+      <h2>4. Data Security</h2>
+      <p>We implement robust security measures to protect your information from unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
+
+      <h2>5. Your Rights</h2>
+      <p>You have the right to access, correct, or delete your personal data. If you wish to exercise these rights or have any questions about this policy, please contact us at contact@techdevx.com.</p>
+    `,
+  },
+  terms: {
+    title: "Terms of Service",
+    content: `
+      <h2>1. Acceptance of Terms</h2>
+      <p>By accessing and using our website and services, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, you should not use our services.</p>
+
+      <h2>2. Services</h2>
+      <p>Trivoxa provides professional software development services. The specifics of each project will be outlined in a separate agreement between you and Trivoxa. We reserve the right to modify, suspend, or discontinue any part of our services at any time.</p>
+
+      <h2>3. User Responsibilities</h2>
+      <p>You are responsible for ensuring that any content you provide to us is accurate and does not violate any third-party rights. You agree not to use our services for any illegal or unauthorized purposes.</p>
+
+      <h2>4. Intellectual Property</h2>
+      <p>All intellectual property rights related to the services provided by Trivoxa, including but not limited to software, designs, and content, remain the property of Trivoxa unless otherwise specified in a separate agreement.</p>
+
+      <h2>5. Limitation of Liability</h2>
+      <p>Trivoxa shall not be liable for any indirect, incidental, or consequential damages resulting from the use of our services. Our total liability for any claim arising from these terms will not exceed the amount you paid for the services.</p>
+    `,
+  },
+  cookie: {
+    title: "Cookie Policy",
+    content: `
+      <h2>1. What Are Cookies?</h2>
+      <p>Cookies are small text files stored on your device when you visit a website. They are widely used to make websites work more efficiently, as well as to provide information to the site's owners.</p>
+
+      <h2>2. How We Use Cookies</h2>
+      <p>We use cookies to enhance your experience on our website. This includes:</p>
+      <ul>
+        <li>**Session Cookies:** These are temporary and are erased when you close your browser.</li>
+        <li>**Analytics Cookies:** We use these to understand how visitors interact with our website, helping us improve its functionality and content.</li>
+        <li>**Functionality Cookies:** These remember your preferences to provide a more personalized experience.</li>
+      </ul>
+
+      <h2>3. Your Choices</h2>
+      <p>Most web browsers allow you to control cookies through their settings. However, disabling cookies may impact your ability to use certain features on our website. By continuing to use our site without changing your settings, you consent to our use of cookies.</p>
+    `,
+  },
+  copyright: {
+    title: "Copyright Notice",
+    content: `
+      <h2>1. Copyright Ownership</h2>
+      <p>The content, organization, graphics, design, compilation, and other matters related to this website and its services are protected under applicable copyrights and other proprietary laws. All content, including but not limited to text, images, and code, is the property of Trivoxa.</p>
+
+      <h2>2. Unauthorized Use</h2>
+      <p>Any unauthorized use of the content or materials on this website, including but not limited to reproduction, distribution, public display, or modification, is strictly prohibited without the express written permission of Trivoxa. This includes using the website's code, design elements, or proprietary content for commercial or non-commercial purposes.</p>
+
+      <h2>3. Permission Requests</h2>
+      <p>If you wish to use any content from this website, please contact us at contact@techdevx.com to request permission. Unauthorized use may result in legal action, including claims for monetary damages and injunctive relief.</p>
+    `,
+  },
+};
+
 export default function Footer() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<ModalContent | null>(null);
+
+  const handleOpenModal = (section: keyof typeof policyData) => {
+    setModalContent(policyData[section]);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setModalContent(null);
+  };
+
   const handleScrollTo = (sectionId: string) => {
     const section = document.querySelector(sectionId);
     if (section) {
@@ -36,11 +136,14 @@ export default function Footer() {
               <div className="relative">
                 <div className=" flex  text-orange-light font-bold text-2xl tracking-tight">
                   <img
-                    src={logoImage}
+                    src={trivoxa}
                     alt="Trivoxa Logo"
                     className="h-8 w-auto mx-auto md:mx-0"
                   />
-                  <span className="text-orange-light font-bold text-2xl tracking-tight">
+                  <span
+                    className="text-orange-light font-bold text-2xl tracking-tight cursor-pointer"
+                    onClick={() => handleScrollTo("Hero")}
+                  >
                     Trivoxa
                   </span>
                 </div>
@@ -96,7 +199,7 @@ export default function Footer() {
                   />
                 </svg>
                 <a href="mailto:trivoxatechnology@gmail.com">
-                  contact@techdevx.com
+                  trivoxatechnology@gmail.com
                 </a>
               </li>
               <li className="flex items-start gap-3">
@@ -148,31 +251,46 @@ export default function Footer() {
         <hr className="border-gray-800 my-8" />
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-          <p className="text-gray-500 text-sm">
-            © {new Date().getFullYear()} TechDevX. All rights reserved.
-          </p>
+          <button
+            onClick={() => handleOpenModal("copyright")}
+            className="text-gray-500 hover:text-orange-light transition-colors"
+          >
+            © {new Date().getFullYear()} Trivoxa. All rights reserved.
+          </button>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
-            <Link
-              to="#"
+            <button
+              onClick={() => handleOpenModal("privacy")}
               className="text-gray-500 hover:text-orange-light transition-colors"
             >
               Privacy Policy
-            </Link>
-            <Link
-              to="#"
+            </button>
+            <button
+              onClick={() => handleOpenModal("terms")}
               className="text-gray-500 hover:text-orange-light transition-colors"
             >
               Terms of Service
-            </Link>
-            <Link
-              to="#"
+            </button>
+            <button
+              onClick={() => handleOpenModal("cookie")}
               className="text-gray-500 hover:text-orange-light transition-colors"
             >
               Cookie Policy
-            </Link>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Modal for Policy Sections */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={modalContent?.title || ""}
+      >
+        <div
+          className="prose prose-sm md:prose-base dark:prose-invert"
+          dangerouslySetInnerHTML={{ __html: modalContent?.content || "" }}
+        ></div>
+      </Modal>
     </footer>
   );
 }
@@ -194,5 +312,79 @@ function FooterLink({
         <span className="absolute left-0 -bottom-1 w-0 h-[1px] bg-orange-light transition-all group-hover:w-full"></span>
       </a>
     </li>
+  );
+}
+
+// Reusable Modal Component
+function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Transition show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-90 transition-opacity" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-gray-950/70 backdrop-blur-sm p-6 text-left align-middle shadow-xl transition-all border border-gray-700">
+                <Dialog.Title
+                  as="h3"
+                  className="text-2xl font-bold leading-6 text-white mb-4 flex justify-between items-center"
+                >
+                  {title}
+                  <button
+                    onClick={onClose}
+                    className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </Dialog.Title>
+                <div className="mt-2 text-gray-300">{children}</div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
   );
 }
