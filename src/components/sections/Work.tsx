@@ -48,7 +48,7 @@ const projects = [
     url: "#"
   },
   {
-    title: "Custome Solution",
+    title: "Custom Solution",
     description: "A custom CRM solution built with PHP, SQL, and modern frontend technologies to manage clients, sales, and business operations effectively.",
     image: "https://www.openteqgroup.com/assets/uploads/admin_images/ab2c82755aacd7f32b6fd1d004c04daf.jpg",
     category: " Web App",
