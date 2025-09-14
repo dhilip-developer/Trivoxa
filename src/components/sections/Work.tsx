@@ -27,15 +27,15 @@ const projects = [
     title: "Social Wellfare ",
     description: "A WordPress-based social welfare website dedicated to promoting community support, awareness programs, and welfare initiatives for a better society.",
     image: social,
-    category: "IoT Platform",
-    tags: ["Vue.js", "Node.js", "MongoDB", "IoT", "WebSockets"],
+    category: "Web App",
+    tags: ["Wordpress Website"],
     url: "http://www.prwdfngo.com"
   },
   {
     title: "AI Automation & Micro SAAS Product",
     description: "Leverage the power of artificial intelligence and machine learning to make your applications smarter.",
     image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop",
-    category: "Blockchain",
+    category: "AI Tool",
     tags: ["N8N", "Play wright", "Automation"],
     url: "#"
   },
@@ -51,7 +51,7 @@ const projects = [
     title: "Custome Solution",
     description: "A custom CRM solution built with PHP, SQL, and modern frontend technologies to manage clients, sales, and business operations effectively.",
     image: "https://www.openteqgroup.com/assets/uploads/admin_images/ab2c82755aacd7f32b6fd1d004c04daf.jpg",
-    category: "AI Tool",
+    category: " Web App",
     tags: ["CRM Applications " , "Php ", " SQL" , "react"],
     url: "#"
   }
