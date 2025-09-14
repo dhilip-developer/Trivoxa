@@ -20,10 +20,10 @@ const policyData = {
     title: "Privacy Policy",
     content: `
       <h2>1. Introduction</h2>
-      <p>This Privacy Policy describes how Trivoxa collects, uses, and protects your personal information. We are committed to safeguarding your privacy and ensuring the security of your data.</p>
+      <p>This Privacy Policy describes how Trivoxa Technology collects, uses, and protects your personal information. We are committed to safeguarding your privacy and ensuring the security of your data.</p>
       
       <h2>2. Information We Collect</h2>
-      <p>We may collect information you provide directly to us, such as your name, email address, and phone number when you contact us through our website. We also collect certain data automatically, including IP addresses, browser type, and usage data, to improve our services.</p>
+      <p>We may collect information you provide directly to us, such as your name, email address, and phone number when you contact us. We also automatically collect certain non-personal data, including your IP addresses, browser type, and usage data, to improve our services.</p>
       
       <h2>3. How We Use Your Information</h2>
       <p>The information we collect is used to:</p>
@@ -39,7 +39,7 @@ const policyData = {
       <p>We implement robust security measures to protect your information from unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
 
       <h2>5. Your Rights</h2>
-      <p>You have the right to access, correct, or delete your personal data. If you wish to exercise these rights or have any questions about this policy, please contact us at contact@techdevx.com.</p>
+      <p>You have the right to access, correct, or delete your personal data. If you wish to exercise these rights or have any questions about this policy, please contact us at **trivoxatechnology@gmail.com**.</p>
     `,
   },
   terms: {
@@ -49,23 +49,23 @@ const policyData = {
       <p>By accessing and using our website and services, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, you should not use our services.</p>
 
       <h2>2. Services</h2>
-      <p>Trivoxa provides professional software development services. The specifics of each project will be outlined in a separate agreement between you and Trivoxa. We reserve the right to modify, suspend, or discontinue any part of our services at any time.</p>
+      <p>Trivoxa Technology provides professional software development services. The specifics of each project will be outlined in a separate agreement. We reserve the right to modify, suspend, or discontinue any part of our services at any time.</p>
 
       <h2>3. User Responsibilities</h2>
       <p>You are responsible for ensuring that any content you provide to us is accurate and does not violate any third-party rights. You agree not to use our services for any illegal or unauthorized purposes.</p>
 
       <h2>4. Intellectual Property</h2>
-      <p>All intellectual property rights related to the services provided by Trivoxa, including but not limited to software, designs, and content, remain the property of Trivoxa unless otherwise specified in a separate agreement.</p>
+      <p>All intellectual property rights related to the services provided by Trivoxa Technology, including but not limited to software, designs, and content, remain the property of Trivoxa Technology unless otherwise specified in a separate agreement.</p>
 
       <h2>5. Limitation of Liability</h2>
-      <p>Trivoxa shall not be liable for any indirect, incidental, or consequential damages resulting from the use of our services. Our total liability for any claim arising from these terms will not exceed the amount you paid for the services.</p>
+      <p>Trivoxa Technology shall not be liable for any indirect, incidental, or consequential damages resulting from the use of our services. Our total liability for any claim arising from these terms will not exceed the amount you paid for the services.</p>
     `,
   },
   cookie: {
     title: "Cookie Policy",
     content: `
       <h2>1. What Are Cookies?</h2>
-      <p>Cookies are small text files stored on your device when you visit a website. They are widely used to make websites work more efficiently, as well as to provide information to the site's owners.</p>
+      <p>Cookies are small text files stored on your device when you visit a website. They are widely used to make websites work more efficiently and to provide information to the site's owners.</p>
 
       <h2>2. How We Use Cookies</h2>
       <p>We use cookies to enhance your experience on our website. This includes:</p>
@@ -83,17 +83,16 @@ const policyData = {
     title: "Copyright Notice",
     content: `
       <h2>1. Copyright Ownership</h2>
-      <p>The content, organization, graphics, design, compilation, and other matters related to this website and its services are protected under applicable copyrights and other proprietary laws. All content, including but not limited to text, images, and code, is the property of Trivoxa.</p>
+      <p>The content, organization, graphics, design, and other matters related to this website and its services are protected under applicable copyrights and other proprietary laws. All content, including but not limited to text, images, and code, is the property of Trivoxa Technology.</p>
 
       <h2>2. Unauthorized Use</h2>
-      <p>Any unauthorized use of the content or materials on this website, including but not limited to reproduction, distribution, public display, or modification, is strictly prohibited without the express written permission of Trivoxa. This includes using the website's code, design elements, or proprietary content for commercial or non-commercial purposes.</p>
+      <p>Any unauthorized use of the content or materials on this website, including but not limited to reproduction, distribution, public display, or modification, is strictly prohibited without the express written permission of Trivoxa Technology. This includes using the website's code, design elements, or proprietary content for commercial or non-commercial purposes.</p>
 
       <h2>3. Permission Requests</h2>
-      <p>If you wish to use any content from this website, please contact us at contact@techdevx.com to request permission. Unauthorized use may result in legal action, including claims for monetary damages and injunctive relief.</p>
+      <p>If you wish to use any content from this website, please contact us at **trivoxatechnology@gmail.com** to request permission. Unauthorized use may result in legal action, including claims for monetary damages and injunctive relief.</p>
     `,
   },
 };
-
 export default function Footer() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<ModalContent | null>(null);
