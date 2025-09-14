@@ -100,7 +100,7 @@ export default function Work() {
               className={`rounded-full ${
                 activeCategory === category 
                   ? "bg-orange hover:bg-orange-light text-black" 
-                  : "border-gray-700 text-gray-300 hover:border-orange hover:text-orange"
+                  : "border-gray-700 text-gray-300 hover:border-orange hover:text-white"
               }`}
             >
               {category}
