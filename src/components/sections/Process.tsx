@@ -34,10 +34,11 @@ const steps = [
 ];
 
 export default function Process() {
-  const [openStep, setOpenStep] = useState<number | null>(null);
-  const processRef = useRef<HTMLDivElement>(null);
+  const [openStep, setOpenStep] = useState(null);
+  const [visibleSteps, setVisibleSteps] = useState(Array(steps.length).fill(false));
+  const processRef = useRef(null);
 
-  const toggleStep = (index: number) => {
+  const toggleStep = (index) => {
     setOpenStep(openStep === index ? null : index);
   };
   
@@ -47,23 +48,31 @@ export default function Process() {
       
       const elements = processRef.current.querySelectorAll('.process-item');
       const windowHeight = window.innerHeight;
+      let newVisibleSteps = [...visibleSteps];
       
-      elements.forEach((el) => {
+      elements.forEach((el, index) => {
         const rect = el.getBoundingClientRect();
         const isVisible = rect.top < windowHeight * 0.85;
         
-        if (isVisible) {
-          el.classList.add('appear');
+        if (isVisible && !newVisibleSteps[index]) {
+          // Stagger the animation
+          setTimeout(() => {
+            setVisibleSteps(prev => {
+              const newArr = [...prev];
+              newArr[index] = true;
+              return newArr;
+            });
+          }, index * 150); // Delay each item by 150ms
         }
       });
     };
     
     window.addEventListener('scroll', handleScroll);
-    // Initial check
-    setTimeout(handleScroll, 100);
+    // Initial check on load
+    handleScroll();
     
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [visibleSteps]);
 
   return (
     <section id="process" className="py-24 bg-gradient-to-b from-black to-tech-dark relative overflow-hidden" ref={processRef}>
@@ -142,9 +151,9 @@ export default function Process() {
           {steps.map((step, index) => (
             <div 
               key={index} 
-              className={`process-item mb-16 lg:mb-32 opacity-0 transition-all duration-700 ${
+              className={`process-item mb-16 lg:mb-32 transform transition-all duration-700 ${
                 index % 2 === 0 ? 'lg:pr-[50%]' : 'lg:pl-[50%] lg:text-right'
-              }`}
+              } ${visibleSteps[index] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
             >
               <div className="relative">
                 {/* Step number with glowing circle */}

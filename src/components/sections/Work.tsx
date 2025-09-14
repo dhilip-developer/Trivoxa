@@ -6,6 +6,7 @@ import Cloudkitchen from "@/Assets/CloudKItchen.png"
 import social from "@/Assets/SocialWellfare.png"
 import MountTennaProject from "@/Assets/MountTennaProject.png"
 
+
 const projects = [
   {
     title: "Cloud kitchen Food Ordering",
@@ -51,13 +52,13 @@ const projects = [
     title: "Custom Solution",
     description: "A custom CRM solution built with PHP, SQL, and modern frontend technologies to manage clients, sales, and business operations effectively.",
     image: "https://www.openteqgroup.com/assets/uploads/admin_images/ab2c82755aacd7f32b6fd1d004c04daf.jpg",
-    category: " Web App",
+    category: "Custom Software",
     tags: ["CRM Applications " , "Php ", " SQL" , "react"],
     url: "#"
   }
 ];
 
-const categories = ["All", "Web App", "Mobile App", "Blockchain", "E-commerce", "AI Tool", "IoT Platform"];
+const categories = ["All", "Web App", "E-commerce", "AI Tool","Custom Software"];
 
 export default function Work() {
   const [activeCategory, setActiveCategory] = useState("All");
