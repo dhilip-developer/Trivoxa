@@ -31,7 +31,7 @@ const services = [
         ),
         title: "Web Development",
         description: "Custom web applications with stunning UI/UX, responsive design, and seamless functionality across all devices.",
-        features: ["React/Next.js", "Vue/Nuxt.js", "TypeScript", "Node.js"]
+        features: ["React","Next.js", "TypeScript", "Node.js"]
     },
     {
         icon: (
@@ -51,7 +51,7 @@ const services = [
         ),
         title: "Backend Development",
         description: "Secure, scalable, and high-performance backend systems that power your applications.",
-        features: ["Node.js/Express", "Databases", "API Design"]
+        features: [" MongoDB", "Express", "API Design" ,"SQl / MySQL "]
     },
     {
         icon: (
@@ -69,9 +69,9 @@ const services = [
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
             </svg>
         ),
-        title: "AI & ML Integration",
+        title: "AI Automation & Micro SAAS Product",
         description: "Leverage the power of artificial intelligence and machine learning to make your applications smarter.",
-        features: ["OpenAI/GPT", "TensorFlow", "Data Analysis", "Automation"]
+        features: ["N8N", "Play Wright", "Automation"]
     },
     {
         icon: (
@@ -79,9 +79,9 @@ const services = [
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
             </svg>
         ),
-        title: "Blockchain Development",
-        description: "Build secure and decentralized applications using cutting-edge blockchain technologies.",
-        features: ["Smart Contracts", "Web3.js/ethers.js", "DApps", "NFT/Token Development"]
+        title: "Custome Solution",
+        description: "A custom CRM solution built with PHP, SQL, and modern frontend technologies to manage clients, sales, and business operations effectively.",
+        features: ["Custom CRM" , "Php ", " SQL"]
     }
 ];
 

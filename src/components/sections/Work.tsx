@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Cloudkitchen from "@/Assets/CloudKItchen.png"
+import social from "@/Assets/SocialWellfare.png"
 import MountTennaProject from "@/Assets/MountTennaProject.png"
 
 const projects = [
@@ -16,42 +17,42 @@ const projects = [
   },
   {
     title: "Tourister Website",
-    description: "Healthcare mobile application connecting patients with doctors for virtual consultations and appointment scheduling.",
+    description: "A WordPress-based tourist website offering destination guides, hotel bookings, travel packages, and event updates for hassle-free trip planning.",
     image:MountTennaProject ,
     category: "Web App",
     tags: ["Wordpress Website"],
     url: "https://mountteenamunnarvilla.com/"
   },
   {
-    title: "EcoTrack",
-    description: "Environmental monitoring system with IoT integration, real-time analytics and interactive dashboard.",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop",
+    title: "Social Wellfare ",
+    description: "A WordPress-based social welfare website dedicated to promoting community support, awareness programs, and welfare initiatives for a better society.",
+    image: social,
     category: "IoT Platform",
     tags: ["Vue.js", "Node.js", "MongoDB", "IoT", "WebSockets"],
-    url: "#"
+    url: "http://www.prwdfngo.com"
   },
   {
-    title: "CryptoVault",
-    description: "Secure cryptocurrency wallet with multi-chain support, real-time price tracking, and advanced security features.",
+    title: "AI Automation & Micro SAAS Product",
+    description: "Leverage the power of artificial intelligence and machine learning to make your applications smarter.",
     image: "https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2232&auto=format&fit=crop",
     category: "Blockchain",
-    tags: ["React", "Web3.js", "Blockchain", "Smart Contracts"],
+    tags: ["N8N", "Play wright", "Automation"],
     url: "#"
   },
   {
-    title: "ShopSmart",
+    title: "E-commerce",
     description: "E-commerce platform with AI-powered product recommendations, social shopping features, and seamless checkout.",
-    image: "https://images.unsplash.com/photo-1526289034009-0240ddb68ce3?q=80&w=2071&auto=format&fit=crop",
+    image: "https://f.hellowork.com/blogdumoderateur/2023/05/ECommerce-Fevad-2023-.jpg",
     category: "E-commerce",
-    tags: ["Next.js", "Stripe", "MongoDB", "Redis"],
+    tags: ["React.js", "Wordpress", "MongoDB", "Payment Gateway"],
     url: "#"
   },
   {
-    title: "AI Content Studio",
-    description: "Content creation platform leveraging AI for generating articles, social media posts, and marketing copy.",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop",
+    title: "Custome Solution",
+    description: "A custom CRM solution built with PHP, SQL, and modern frontend technologies to manage clients, sales, and business operations effectively.",
+    image: "https://www.openteqgroup.com/assets/uploads/admin_images/ab2c82755aacd7f32b6fd1d004c04daf.jpg",
     category: "AI Tool",
-    tags: ["React", "OpenAI API", "Node.js", "Express"],
+    tags: ["CRM Applications " , "Php ", " SQL" , "react"],
     url: "#"
   }
 ];
