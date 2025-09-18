@@ -11,6 +11,10 @@ export default defineConfig(({ mode }) => ({
     }),
     react(),
   ],
+  build: {
+    // Set the chunk size warning limit to 1000 KB (1 MB)
+    chunkSizeWarningLimit: 1000,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
