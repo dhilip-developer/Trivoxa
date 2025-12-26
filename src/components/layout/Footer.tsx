@@ -1,7 +1,8 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import { Link } from "react-router-dom";
 import trivoxa from "@/Assets/trivoxa-logo.png";
 import { Dialog, Transition } from "@headlessui/react";
+import { getSiteSettings, SiteSettings } from "../../lib/firestore";
 
 // ---
 // ## Component: Footer
@@ -97,8 +98,70 @@ export default function Footer() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<ModalContent | null>(null);
 
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+  const [legalPages, setLegalPages] = useState<Record<string, { title: string; content: string }>>({});
+  const [footerContact, setFooterContact] = useState({
+    email: 'trivoxatechnology@gmail.com',
+    phone: '+91 6374106956',
+    address: 'Virtualy Service All Over The World, Founders Located Chennai',
+  });
+
+  useEffect(() => {
+    getSiteSettings().then(data => {
+      if (data) setSettings(data);
+    });
+
+    // Fetch footer contact from Firestore
+    const fetchFooterContact = async () => {
+      try {
+        const { doc, getDoc } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        const { COLLECTIONS } = await import('../../lib/firestore');
+        const docSnap = await getDoc(doc(db, COLLECTIONS.SETTINGS, 'footerContact'));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setFooterContact({
+            email: data.email || 'trivoxatechnology@gmail.com',
+            phone: data.phone || '+91 6374106956',
+            address: data.address || 'Virtualy Service All Over The World, Founders Located Chennai',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching footer contact:', error);
+      }
+    };
+    fetchFooterContact();
+
+    // Fetch legal pages from Firestore
+    const fetchLegalPages = async () => {
+      try {
+        const { collection, getDocs } = await import('firebase/firestore');
+        const { db } = await import('../../lib/firebase');
+        const { COLLECTIONS } = await import('../../lib/firestore');
+        const querySnapshot = await getDocs(collection(db, COLLECTIONS.LEGAL));
+        const pages: Record<string, { title: string; content: string }> = {};
+        querySnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          pages[doc.id] = { title: data.title, content: data.content };
+        });
+        if (Object.keys(pages).length > 0) {
+          setLegalPages(pages);
+        }
+      } catch (error) {
+        console.error('Error fetching legal pages:', error);
+      }
+    };
+    fetchLegalPages();
+  }, []);
+
   const handleOpenModal = (section: keyof typeof policyData) => {
-    setModalContent(policyData[section]);
+    // Use Firestore content if available, otherwise fall back to hardcoded
+    const firestoreContent = legalPages[section];
+    if (firestoreContent) {
+      setModalContent(firestoreContent);
+    } else {
+      setModalContent(policyData[section]);
+    }
     setIsModalOpen(true);
   };
 
@@ -117,11 +180,9 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-black relative overflow-hidden">
+    <footer className="bg-black/60 backdrop-blur-lg border-t border-white/10 relative overflow-hidden">
       {/* Background elements */}
       <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-tech-dark/50 to-transparent"></div>
-      <div className="absolute top-1/4 left-10 w-40 h-40 rounded-full bg-orange/5 filter blur-3xl"></div>
-      <div className="absolute bottom-1/4 right-10 w-60 h-60 rounded-full bg-neon-cyan/5 filter blur-3xl"></div>
 
       {/* Main Footer */}
       <div className="container mx-auto px-4 pt-8 pb-12 relative z-10">
@@ -143,7 +204,7 @@ export default function Footer() {
                     className="text-orange-light font-bold text-2xl tracking-tight cursor-pointer"
                     onClick={() => handleScrollTo("Hero")}
                   >
-                    Trivoxa
+                    {settings?.siteName || 'Trivoxa'}
                   </span>
                 </div>
               </div>
@@ -197,8 +258,8 @@ export default function Footer() {
                     d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
                   />
                 </svg>
-                <a href="mailto:trivoxatechnology@gmail.com">
-                  trivoxatechnology@gmail.com
+                <a href={`mailto:${footerContact.email}`}>
+                  {footerContact.email}
                 </a>
               </li>
               <li className="flex items-start gap-3">
@@ -216,7 +277,7 @@ export default function Footer() {
                     d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z"
                   />
                 </svg>
-                <a href="tel:6374106956">+91 6374106956</a>
+                <a href={`tel:${footerContact.phone.replace(/\s/g, '')}`}>{footerContact.phone}</a>
               </li>
               <li className="flex items-start gap-3">
                 <svg
@@ -239,8 +300,7 @@ export default function Footer() {
                   />
                 </svg>
                 <span>
-                  Virtualy Service All Over The World ,<br />
-                  Founders Located Chennai
+                  {footerContact.address}
                 </span>
               </li>
             </ul>
@@ -254,25 +314,16 @@ export default function Footer() {
             onClick={() => handleOpenModal("copyright")}
             className="text-gray-500 hover:text-orange-light transition-colors"
           >
-            © {new Date().getFullYear()} Trivoxa. All rights reserved.
+            {settings?.copyrightText || `© ${new Date().getFullYear()} ${settings?.siteName || 'Trivoxa'}. All rights reserved.`}
           </button>
           <div className="flex flex-wrap justify-center gap-6 text-sm">
-            <button
-              onClick={() => handleOpenModal("privacy")}
-              className="text-gray-500 hover:text-orange-light transition-colors"
-            >
+            <button onClick={() => handleOpenModal("privacy")} className="text-gray-500 hover:text-orange-light transition-colors">
               Privacy Policy
             </button>
-            <button
-              onClick={() => handleOpenModal("terms")}
-              className="text-gray-500 hover:text-orange-light transition-colors"
-            >
+            <button onClick={() => handleOpenModal("terms")} className="text-gray-500 hover:text-orange-light transition-colors">
               Terms of Service
             </button>
-            <button
-              onClick={() => handleOpenModal("cookie")}
-              className="text-gray-500 hover:text-orange-light transition-colors"
-            >
+            <button onClick={() => handleOpenModal("cookie")} className="text-gray-500 hover:text-orange-light transition-colors">
               Cookie Policy
             </button>
           </div>

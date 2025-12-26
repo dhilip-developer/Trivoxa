@@ -1,31 +1,18 @@
 import React, { useState } from 'react';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
-import { COLLECTIONS } from '../../lib/firestore';
-import emailjs from '@emailjs/browser';
 
-// EmailJS Configuration
-const EMAILJS_SERVICE_ID = 'service_9fdnprq';
-const EMAILJS_TEMPLATE_ID = 'template_t59elhs';
-const EMAILJS_PUBLIC_KEY = '5y8KdjzVD5ppIrt3r';
-
-// WhatsApp Configuration
-const WHATSAPP_NUMBER = '916374106956'; // India country code + number
-const ADMIN_EMAIL = 'trivoxatechonlogy@gmail.com';
-
-interface StartYourProjectProps {
+interface ContactFormModalProps {
     isOpen: boolean;
     closeModal: () => void;
     title?: string;
     subtitle?: string;
 }
 
-export function StartYourProject({
+export default function ContactFormModal({
     isOpen,
     closeModal,
     title = "Start Your Project",
     subtitle = "Tell us about your vision and we'll bring it to life"
-}: StartYourProjectProps) {
+}: ContactFormModalProps) {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -37,84 +24,16 @@ export function StartYourProject({
         description: '',
     });
     const [submitted, setSubmitted] = useState(false);
-    const [loading, setLoading] = useState(false);
 
-    // Send WhatsApp notification
-    const sendWhatsAppNotification = (data: typeof formData) => {
-        const message = `🚀 *New Project Request*
-
-👤 *Name:* ${data.name}
-📧 *Email:* ${data.email}
-📱 *Phone:* ${data.phone || 'Not provided'}
-🏢 *Company:* ${data.company || 'Not provided'}
-
-📋 *Project Type:* ${data.projectType}
-💰 *Budget:* ${data.budget || 'Not specified'}
-⏱️ *Timeline:* ${data.timeline || 'Not specified'}
-
-📝 *Description:*
-${data.description}`;
-
-        const encodedMessage = encodeURIComponent(message);
-        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
-    };
-
-    // Send Email notification via EmailJS
-    const sendEmailNotification = async (data: typeof formData) => {
-        try {
-            await emailjs.send(
-                EMAILJS_SERVICE_ID,
-                EMAILJS_TEMPLATE_ID,
-                {
-                    to_email: ADMIN_EMAIL,
-                    from_name: data.name,
-                    from_email: data.email,
-                    phone: data.phone || 'Not provided',
-                    company: data.company || 'Not provided',
-                    project_type: data.projectType,
-                    budget: data.budget || 'Not specified',
-                    timeline: data.timeline || 'Not specified',
-                    message: data.description,
-                },
-                EMAILJS_PUBLIC_KEY
-            );
-            console.log('Email sent successfully');
-        } catch (error) {
-            console.error('Email failed:', error);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-
-        try {
-            // 1. Save to Firestore
-            await addDoc(collection(db, COLLECTIONS.REQUESTS), {
-                ...formData,
-                status: 'pending',
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-            });
-
-            // 2. Send WhatsApp notification (opens in new tab)
-            sendWhatsAppNotification(formData);
-
-            // 3. Try to send email (silently fails if not configured)
-            sendEmailNotification(formData);
-
-            setSubmitted(true);
-            setTimeout(() => {
-                setSubmitted(false);
-                closeModal();
-                setFormData({ name: '', email: '', phone: '', company: '', projectType: 'web-app', budget: '', timeline: '', description: '' });
-            }, 2500);
-        } catch (error) {
-            console.error('Error submitting:', error);
-            alert('Failed to submit. Please try again.');
-        } finally {
-            setLoading(false);
-        }
+        console.log('Form submitted:', formData);
+        setSubmitted(true);
+        setTimeout(() => {
+            setSubmitted(false);
+            closeModal();
+            setFormData({ name: '', email: '', phone: '', company: '', projectType: 'web-app', budget: '', timeline: '', description: '' });
+        }, 2500);
     };
 
     if (!isOpen) return null;
@@ -124,7 +43,7 @@ ${data.description}`;
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
 
-            {/* Modal - Fixed, compact */}
+            {/* Modal - Fixed height, no scroll */}
             <div className="relative w-full max-w-2xl rounded-3xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl shadow-orange-500/10 overflow-hidden">
                 {/* Decorative */}
                 <div className="absolute top-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
@@ -143,9 +62,9 @@ ${data.description}`;
                 <div className="relative p-6 md:p-8">
                     {submitted ? (
                         /* Success Message - Small & Fixed */
-                        <div className="py-10 text-center">
-                            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
-                                <svg className="w-7 h-7 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="py-12 text-center">
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center animate-pulse">
+                                <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
@@ -155,15 +74,15 @@ ${data.description}`;
                     ) : (
                         <>
                             {/* Header */}
-                            <div className="text-center mb-5">
-                                <div className="inline-block px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-medium mb-2">
+                            <div className="text-center mb-6">
+                                <div className="inline-block px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-medium mb-3">
                                     Let's Build Something Amazing
                                 </div>
                                 <h2 className="text-2xl font-bold text-white mb-1">{title}</h2>
                                 <p className="text-gray-400 text-sm">{subtitle}</p>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-3">
+                            <form onSubmit={handleSubmit} className="space-y-4">
                                 {/* Row 1 */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <input
@@ -202,7 +121,7 @@ ${data.description}`;
                                     />
                                 </div>
 
-                                {/* Row 3 - Dropdowns */}
+                                {/* Row 3 */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <select
                                         value={formData.projectType}
@@ -253,10 +172,9 @@ ${data.description}`;
                                 {/* Submit */}
                                 <button
                                     type="submit"
-                                    disabled={loading}
-                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold hover:from-orange-600 hover:to-orange-700 transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] active:scale-[0.98] disabled:opacity-50"
+                                    className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold hover:from-orange-600 hover:to-orange-700 transition-all hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] active:scale-[0.98]"
                                 >
-                                    {loading ? 'Submitting...' : 'Submit Request'}
+                                    Submit Request
                                 </button>
                             </form>
                         </>
@@ -266,6 +184,3 @@ ${data.description}`;
         </div>
     );
 }
-
-// Default export for compatibility
-export default StartYourProject;

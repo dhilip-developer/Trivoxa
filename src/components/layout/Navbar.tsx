@@ -2,13 +2,15 @@
 
 import * as React from "react";
 import logoImage from "../../Assets/Trivoxa Triangle.png";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { COLLECTIONS, SiteSettings } from "@/lib/firestore";
 
 // ---
 // ## Component: NavLink
-// A separate component for the navigation links with type safety and active state.
 // ---
 
 interface NavLinkProps {
@@ -32,13 +34,10 @@ function NavLink({
     return (
       <Button
         asChild
-        className={`transition-all duration-200 ${
-          isActive
-            ? "bg-orange-light hover:bg-orange-light/90"
-            : "hover:bg-orange-light/70"
-        }`}
+        size="sm"
+        className={`transition-all duration-300 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold text-sm px-4 py-1.5 shadow-lg shadow-orange/25 hover:shadow-orange/50 border border-white/10 hover:scale-105 active:scale-95 group ${className}`}
       >
-        <a href={href} onClick={onClick} className={className || ""}>
+        <a href={href} onClick={onClick}>
           {children}
         </a>
       </Button>
@@ -49,104 +48,139 @@ function NavLink({
     <a
       href={href}
       onClick={onClick}
-      className={`text-gray-300 hover:text-orange-light transition-colors duration-200 font-medium text-sm relative group ${
-        isActive ? "text-orange-light" : ""
-      } ${className || ""}`}
+      className={`text-gray-300 hover:text-orange-light transition-colors duration-200 font-medium text-sm relative group ${isActive ? "text-orange-light" : ""
+        } ${className || ""}`}
     >
       {children}
       <span
-        className={`absolute -bottom-1 left-0 h-[2px] transition-all duration-200 bg-orange-light ${
-          isActive ? "w-full" : "w-0 group-hover:w-full"
-        }`}
+        className={`absolute -bottom-1 left-0 h-[2px] transition-all duration-200 bg-orange-light ${isActive ? "w-full" : "w-0 group-hover:w-full"
+          }`}
       ></span>
     </a>
   );
 }
 
 // ---
+// ## Page Visibility Interface
+// ---
+
+interface PageVisibility {
+  hero: boolean;
+  services: boolean;
+  projects: boolean;
+  about: boolean;
+  testimonials: boolean;
+  faq: boolean;
+  contact: boolean;
+}
+
+const defaultVisibility: PageVisibility = {
+  hero: true,
+  services: true,
+  projects: true,
+  about: true,
+  testimonials: true,
+  faq: true,
+  contact: true,
+};
+
+// ---
 // ## Component: Navbar
-// The main Navbar component with the corrected logic and JSX.
 // ---
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("Hero"); // Set initial active section to "Hero"
-  const observerRef = useRef<Map<string, IntersectionObserverEntry>>(new Map());
+  const [activeSection, setActiveSection] = useState("Hero");
+  const [visibility, setVisibility] = useState<PageVisibility>(defaultVisibility);
 
   useEffect(() => {
+    // Fetch settings for page visibility
+    const fetchSettings = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, COLLECTIONS.SETTINGS, 'main'));
+        if (docSnap.exists()) {
+          const data = docSnap.data() as SiteSettings;
+          if (data.pageVisibility) {
+            setVisibility({
+              ...defaultVisibility,
+              ...data.pageVisibility,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error);
+      }
+    };
+    fetchSettings();
+
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+
+      const sections = document.querySelectorAll("section[id]");
+      const scrollPosition = window.scrollY + window.innerHeight / 3;
+
+      let currentSection = "Hero";
+
+      sections.forEach((section) => {
+        const sectionTop = (section as HTMLElement).offsetTop;
+        const sectionHeight = (section as HTMLElement).offsetHeight;
+
+        if (
+          scrollPosition >= sectionTop &&
+          scrollPosition < sectionTop + sectionHeight
+        ) {
+          currentSection = section.id;
+        }
+      });
+
+      if (window.scrollY < 50) {
+        currentSection = "Hero";
+      }
+
+      setActiveSection(currentSection);
     };
 
     window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    const sections = document.querySelectorAll("section[id]");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          observerRef.current.set(entry.target.id, entry);
-        });
-
-        const visibleSections = Array.from(observerRef.current.values()).filter(
-          (entry) => entry.isIntersecting
-        );
-
-        // Find the top-most visible section based on its position in the viewport.
-        if (visibleSections.length > 0) {
-          const topVisibleSection = visibleSections.reduce((prev, curr) =>
-            curr.boundingClientRect.top < prev.boundingClientRect.top
-              ? curr
-              : prev
-          );
-          setActiveSection(topVisibleSection.target.id);
-        }
-      },
-      // Using a threshold of 0.2 and a margin of 80px to account for the navbar height.
-      { threshold: 0.2, rootMargin: "-80px 0px -80px 0px" }
-    );
-
-    sections.forEach((section) => {
-      observer.observe(section);
-    });
-
-    return () => {
-      sections.forEach((section) => {
-        observer.unobserve(section);
-      });
-    };
   }, []);
 
   const handleScrollTo = (sectionId: string) => {
     const section = document.getElementById(sectionId);
     if (section) {
-      // Manually set the active section before scrolling.
       setActiveSection(sectionId);
       section.scrollIntoView({ behavior: "smooth", block: "start" });
-      setIsMobileMenuOpen(false); // Close mobile menu after clicking a link
-    } else {
-      console.warn(`Scroll target not found: #${sectionId}`);
+      setIsMobileMenuOpen(false);
     }
   };
 
+  // Navigation items with visibility mapping
+  const navItems = [
+    { id: "Hero", label: "Home", visible: visibility.hero },
+    { id: "services", label: "Services", visible: visibility.services },
+    { id: "work", label: "Projects", visible: visibility.projects },
+    { id: "process", label: "Process", visible: true }, // Always visible
+    { id: "about", label: "About", visible: visibility.about },
+    { id: "testimonials", label: "Reviews", visible: visibility.testimonials },
+    { id: "faq", label: "FAQ", visible: visibility.faq },
+  ];
+
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-tech-dark/90 backdrop-blur-md shadow-lg py-3"
-          : "bg-transparent py-5"
-      }`}
+      className={`fixed z-50 transition-all duration-700 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${scrolled
+        ? "top-6 left-1/2 -translate-x-1/2 w-[95%] md:w-[920px] lg:w-[980px] rounded-full bg-black/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] py-2.5 px-6"
+        : "top-4 left-1/2 -translate-x-1/2 w-[95%] md:w-[90%] lg:w-[1200px] border border-white/5 bg-black/20 backdrop-blur-sm py-4 rounded-2xl px-6"
+        }`}
     >
-      <div className="container mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="w-full h-full flex items-center justify-between">
         {/* Logo and Brand Name */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 shrink-0">
           <div className="flex items-center gap-2">
-            <img src={logoImage} alt="Trivoxa Logo" className="h-8 w-auto" />
+            <img src={logoImage} alt="Trivoxa Logo" className="h-7 w-auto" />
             <span
-              className="text-orange-light font-bold text-2xl tracking-tight cursor-pointer"
+              className="text-orange-light font-bold text-xl tracking-tight cursor-pointer hidden lg:block"
               onClick={() => handleScrollTo("Hero")}
             >
               Trivoxa
@@ -155,68 +189,33 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Navigation Links */}
-        <div className="hidden md:flex items-center gap-8">
-          <NavLink
-            href="#Hero"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("Hero");
-            }}
-            isActive={activeSection === "Hero"}
-          >
-            Home
-          </NavLink>
-          <NavLink
-            href="#services"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("services");
-            }}
-            isActive={activeSection === "services"}
-          >
-            Services
-          </NavLink>
-          <NavLink
-            href="#work"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("work");
-            }}
-            isActive={activeSection === "work"}
-          >
-            Projects
-          </NavLink>
-          <NavLink
-            href="#process"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("process");
-            }}
-            isActive={activeSection === "process"}
-          >
-            Process
-          </NavLink>
-          <NavLink
-            href="#about"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("about");
-            }}
-            isActive={activeSection === "about"}
-          >
-            About
-          </NavLink>
-          <NavLink
-            href="#Contact"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("Contact");
-            }}
-            isActive={activeSection === "Contact"}
-            isContactButton={true}
-          >
-            Contact Me
-          </NavLink>
+        <div className="hidden md:flex items-center gap-4 lg:gap-5">
+          {navItems.filter(item => item.visible).map((item) => (
+            <NavLink
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleScrollTo(item.id);
+              }}
+              isActive={activeSection === item.id}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+          {visibility.contact && (
+            <NavLink
+              href="#Contact"
+              onClick={(e) => {
+                e.preventDefault();
+                handleScrollTo("Contact");
+              }}
+              isActive={activeSection === "Contact"}
+              isContactButton={true}
+            >
+              Contact
+            </NavLink>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -238,69 +237,34 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div
           className="md:hidden absolute left-0 right-0 bg-tech-dark/95 backdrop-blur-md shadow-lg flex flex-col items-center gap-6 py-8 z-40"
-          style={{ top: scrolled ? "60px" : "76px" }}
+          style={{ top: scrolled ? "70px" : "80px", borderRadius: scrolled ? "24px" : "0" }}
         >
-          <NavLink
-            href="#Hero"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("Hero");
-            }}
-            isActive={activeSection === "Hero"}
-          >
-            Home
-          </NavLink>
-          <NavLink
-            href="#services"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("services");
-            }}
-            isActive={activeSection === "services"}
-          >
-            Services
-          </NavLink>
-          <NavLink
-            href="#work"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("work");
-            }}
-            isActive={activeSection === "work"}
-          >
-            Projects
-          </NavLink>
-          <NavLink
-            href="#process"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("process");
-            }}
-            isActive={activeSection === "process"}
-          >
-            Process
-          </NavLink>
-          <NavLink
-            href="#about"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("about");
-            }}
-            isActive={activeSection === "about"}
-          >
-            About
-          </NavLink>
-          <NavLink
-            href="#Contact"
-            onClick={(e) => {
-              e.preventDefault();
-              handleScrollTo("Contact");
-            }}
-            isActive={activeSection === "Contact"}
-            isContactButton={true}
-          >
-            Contact Me
-          </NavLink>
+          {navItems.filter(item => item.visible).map((item) => (
+            <NavLink
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                handleScrollTo(item.id);
+              }}
+              isActive={activeSection === item.id}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+          {visibility.contact && (
+            <NavLink
+              href="#Contact"
+              onClick={(e) => {
+                e.preventDefault();
+                handleScrollTo("Contact");
+              }}
+              isActive={activeSection === "Contact"}
+              isContactButton={true}
+            >
+              Contact
+            </NavLink>
+          )}
         </div>
       )}
     </nav>

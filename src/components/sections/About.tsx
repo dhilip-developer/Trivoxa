@@ -1,52 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Github, Linkedin, Twitter, Globe } from "lucide-react"
 import dhilip from "@/Assets/dhilip2.jpg"
-
-// ---
-// ## Component: StartYourProject (Mock Component)
-// This is a placeholder modal for the "Start Your Project" action.
-// This component has been moved into this file to resolve a compilation error.
-// ---
-function StartYourProject({ isOpen, closeModal }) {
-  if (!isOpen) {
-    return null
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-900 p-8 rounded-xl border border-gray-700 max-w-lg w-full text-center relative shadow-2xl">
-        <button
-          onClick={closeModal}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-        <h3 className="text-3xl font-bold text-white mb-4">
-          Start Your Project
-        </h3>
-        <p className="text-gray-300 mb-6">
-          Thank you for your interest! This is a placeholder for a contact form.
-          Please replace this with your actual form component.
-        </p>
-        <Button onClick={closeModal}>Close</Button>
-      </div>
-    </div>
-  )
-}
+import { doc, getDoc } from "firebase/firestore"
+import { db } from "../../lib/firebase"
+import { COLLECTIONS } from "../../lib/firestore"
+import { StartYourProject } from "./StartYourProject"
 
 function TeamCard({
   name,
@@ -64,7 +23,7 @@ function TeamCard({
   return (
     <div className="group relative">
       {/* Glassmorphism card with hover effects */}
-      <div className="relative bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 transition-all duration-500 hover:scale-105 hover:bg-card/70 hover:border-accent/30 hover:shadow-2xl hover:shadow-accent/10">
+      <div className="relative bg-black/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 transition-all duration-500 hover:scale-105 hover:bg-card/70 hover:border-accent/30 hover:shadow-2xl hover:shadow-accent/10">
         {/* Gradient overlay on hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-accent/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -72,7 +31,7 @@ function TeamCard({
         <div className="relative mb-6">
           <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-2 border-accent/20 group-hover:border-accent/50 transition-all duration-300">
             <img
-              src={image }
+              src={image}
               alt={name}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />
@@ -186,62 +145,98 @@ const companyData = {
 
 export default function About() {
   const [isFormVisible, setIsFormVisible] = useState(false)
+  const [aboutData, setAboutData] = useState(companyData)
+
+  // Fetch about content from Firestore
+  useEffect(() => {
+    const fetchAbout = async () => {
+      try {
+        const docSnap = await getDoc(doc(db, COLLECTIONS.PAGES, 'about'))
+        if (docSnap.exists()) {
+          const data = docSnap.data()
+          setAboutData({
+            about: {
+              title: data.title || companyData.about.title,
+              subtitle: data.subtitle || companyData.about.subtitle,
+              description: data.description || companyData.about.description,
+            },
+            team: data.team?.map((member: any) => ({
+              name: member.name,
+              role: member.role,
+              image: member.image || '',
+              bio: member.bio,
+              social: {
+                github: member.github,
+                linkedin: member.linkedin,
+                portfolio: member.portfolio,
+              },
+            })) || companyData.team,
+            heroImage: companyData.heroImage,
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching about:', error)
+      }
+    }
+    fetchAbout()
+  }, [])
 
   return (
-    <section id="about" className="py-20 bg-background relative overflow-hidden">
-      <div className="absolute top-1/4 left-0 w-96 h-96 rounded-full bg-accent/5 filter blur-3xl" />
-      <div className="absolute bottom-1/4 right-0 w-96 h-96 rounded-full bg-accent/3 filter blur-3xl" />
+    <section id="about" className="py-20 bg-transparent relative overflow-hidden">
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <div className="inline-block px-4 py-2 rounded-full bg-accent text-accent-foreground font-medium text-sm mb-4">
-            {companyData.about.subtitle}
-          </div>
-          <h2 className="text-4xl lg:text-6xl font-bold text-foreground mb-6 text-balance">
-            {companyData.about.title}
-          </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto text-pretty">
-            {companyData.about.description}
-          </p>
-        </div>
-
-
-        <div className="mb-16">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Meet Our Team</h3>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              {"The creative minds behind every successful project"}
+        {/* Glass Card Container */}
+        <div className="rounded-3xl bg-black/40 backdrop-blur-md border border-white/10 p-8 md:p-12 shadow-2xl">
+          <div className="text-center max-w-4xl mx-auto mb-16">
+            <div className="inline-block px-4 py-2 rounded-full bg-accent text-accent-foreground font-medium text-sm mb-4">
+              {aboutData.about.subtitle}
+            </div>
+            <h2 className="text-4xl lg:text-6xl font-bold text-foreground mb-6 text-balance">
+              {aboutData.about.title}
+            </h2>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto text-pretty">
+              {aboutData.about.description}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {companyData.team.map((member, index) => (
-              <TeamCard
-                key={index}
-                name={member.name}
-                role={member.role}
-                image={member.image}
-                bio={member.bio}
-                social={member.social}
-              />
-            ))}
-          </div>
-        </div>
 
-        <div className="text-center">
-          <div className="max-w-2xl mx-auto mb-8">
-            <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">{"Ready to Start Your Project?"}</h3>
-            <p className="text-muted-foreground text-lg">
-              {"Let's discuss your ideas and bring them to life together."}
-            </p>
+          <div className="mb-16">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">Meet Our Team</h3>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                {"The creative minds behind every successful project"}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+              {aboutData.team.map((member, index) => (
+                <TeamCard
+                  key={index}
+                  name={member.name}
+                  role={member.role}
+                  image={member.image}
+                  bio={member.bio}
+                  social={member.social}
+                />
+              ))}
+            </div>
           </div>
-          <Button
-            size="lg"
-            className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent/25"
-            onClick={() => setIsFormVisible(true)}
-          >
-            Start Your Project
-          </Button>
+
+          <div className="text-center">
+            <div className="max-w-2xl mx-auto mb-8">
+              <h3 className="text-2xl lg:text-3xl font-bold text-foreground mb-4">{"Ready to Start Your Project?"}</h3>
+              <p className="text-muted-foreground text-lg">
+                {"Let's discuss your ideas and bring them to life together."}
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-6 text-lg font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent/25"
+              onClick={() => setIsFormVisible(true)}
+            >
+              Start Your Project
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/admin_users/$(request.auth.uid));
+    }
+    
+    // Admin users collection - only admins can read/write
+    match /admin_users/{userId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // Hero content
+    match /hero/{docId} {
+      allow read: if true;  // Public read
+      allow write: if isAdmin();
+    }
+    
+    // Services collection
+    match /services/{docId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Projects collection
+    match /projects/{docId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Tech Stack collection
+    match /techStack/{docId} {
+      allow read: if resource.data.isActive == true || isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Pages collection
+    match /pages/{docId} {
+      allow read: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Site settings - public read, admin write
+    match /siteSettings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
