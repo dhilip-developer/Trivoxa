@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { COLLECTIONS } from '../../lib/firestore';
 import { useToast } from '../../components/Toast';
+import { useAutoSave, useKeyboardShortcuts } from '../../hooks/useAdminUtils';
 import {
     AdminPageHeader,
     AdminCard,
@@ -10,7 +11,8 @@ import {
     AdminTextarea,
     AdminButton,
     AdminLoader,
-    AdminEmptyState
+    AdminEmptyState,
+    AutoSaveIndicator
 } from '../../components/Admin';
 import { Save, Plus, Trash2, Edit3, Users, Globe, Github, Linkedin, X, User, Upload, Link, ZoomIn, ZoomOut, Move, Check, RotateCcw } from 'lucide-react';
 
@@ -239,22 +241,46 @@ function ImageUpload({ value, onChange, label = "Image" }: ImageUploadProps) {
     const [mode, setMode] = useState<'url' | 'file'>(value && !value.startsWith('data:') ? 'url' : 'file');
     const [tempImage, setTempImage] = useState<string | null>(null);
     const [showCropper, setShowCropper] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const processFile = (file: File) => {
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            return;
+        }
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setTempImage(reader.result as string);
+            setShowCropper(true);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File size must be less than 5MB');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setTempImage(reader.result as string);
-                setShowCropper(true);
-            };
-            reader.readAsDataURL(file);
-        }
+        if (file) processFile(file);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) processFile(file);
     };
 
     const handleCrop = (croppedImage: string) => {
@@ -286,8 +312,8 @@ function ImageUpload({ value, onChange, label = "Image" }: ImageUploadProps) {
                         type="button"
                         onClick={() => setMode('file')}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${mode === 'file'
-                                ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                                : 'bg-white/5 text-gray-500 border border-white/10 hover:border-white/20'
+                            ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                            : 'bg-white/5 text-gray-500 border border-white/10 hover:border-white/20'
                             }`}
                     >
                         <Upload className="w-3 h-3" />
@@ -297,8 +323,8 @@ function ImageUpload({ value, onChange, label = "Image" }: ImageUploadProps) {
                         type="button"
                         onClick={() => setMode('url')}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${mode === 'url'
-                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                : 'bg-white/5 text-gray-500 border border-white/10 hover:border-white/20'
+                            ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                            : 'bg-white/5 text-gray-500 border border-white/10 hover:border-white/20'
                             }`}
                     >
                         <Link className="w-3 h-3" />
@@ -315,14 +341,20 @@ function ImageUpload({ value, onChange, label = "Image" }: ImageUploadProps) {
                             accept="image/*"
                             className="hidden"
                         />
-                        <button
-                            type="button"
+                        <div
                             onClick={() => fileInputRef.current?.click()}
-                            className="w-full px-4 py-3 bg-black/40 border border-dashed border-white/20 rounded-xl text-gray-400 text-sm hover:border-orange-500/50 hover:text-white transition-all flex items-center justify-center gap-2"
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            className={`w-full px-4 py-6 border-2 border-dashed rounded-xl text-sm cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${isDragging
+                                    ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+                                    : 'bg-black/40 border-white/20 text-gray-400 hover:border-orange-500/50 hover:text-white'
+                                }`}
                         >
-                            <Upload className="w-4 h-4" />
-                            {value ? 'Change Image' : 'Choose Image'}
-                        </button>
+                            <Upload className={`w-6 h-6 ${isDragging ? 'animate-bounce' : ''}`} />
+                            <span>{isDragging ? 'Drop image here' : value ? 'Change Image' : 'Drop image or click to upload'}</span>
+                            <span className="text-xs text-gray-600">Max 5MB</span>
+                        </div>
                     </div>
                 ) : (
                     <input
@@ -384,6 +416,32 @@ export default function AboutEditor() {
     const [editingMember, setEditingMember] = useState<number | null>(null);
     const [showMemberForm, setShowMemberForm] = useState(false);
     const [newMember, setNewMember] = useState<TeamMember>(emptyMember);
+    const [cropperImage, setCropperImage] = useState<string | null>(null);
+    const [cropperTarget, setCropperTarget] = useState<'edit' | 'new' | null>(null);
+
+    // Auto-save with debounce (1.5 seconds)
+    const { status: autoSaveStatus, lastSaved } = useAutoSave(
+        COLLECTIONS.PAGES,
+        'about',
+        content,
+        {
+            debounceMs: 1500,
+            enabled: !loading,
+            onError: (error) => showToast(`Auto-save failed: ${error.message}`, 'error'),
+        }
+    );
+
+    // Keyboard shortcuts
+    useKeyboardShortcuts([
+        { key: 's', ctrl: true, handler: () => handleSave() },
+        {
+            key: 'Escape', handler: () => {
+                setEditingMember(null);
+                setShowMemberForm(false);
+                setCropperImage(null);
+            }
+        },
+    ]);
 
     useEffect(() => {
         const fetch = async () => {
@@ -422,12 +480,23 @@ export default function AboutEditor() {
         setContent({ ...content, team: newTeam });
     };
 
-    const addMember = () => {
+    const addMember = async () => {
         if (newMember.name && newMember.role) {
-            setContent({ ...content, team: [...content.team, newMember] });
+            const updatedContent = { ...content, team: [...content.team, newMember] };
+            setContent(updatedContent);
             setNewMember(emptyMember);
             setShowMemberForm(false);
-            showToast('Team member added', 'success');
+
+            // Auto-save to Firestore
+            try {
+                await setDoc(doc(db, COLLECTIONS.PAGES, 'about'), {
+                    ...updatedContent,
+                    updatedAt: serverTimestamp(),
+                });
+                showToast('Team member added and saved', 'success');
+            } catch (error: any) {
+                showToast(`Added locally. Error saving: ${error.message}`, 'error');
+            }
         }
     };
 
@@ -445,14 +514,18 @@ export default function AboutEditor() {
                 title="About Section"
                 subtitle="Edit company info and team members"
                 actions={
-                    <AdminButton onClick={handleSave} disabled={saving}>
-                        <Save className="w-4 h-4 mr-2" />
-                        {saving ? 'Saving...' : 'Save Changes'}
-                    </AdminButton>
+                    <div className="flex items-center gap-4">
+                        <AutoSaveIndicator status={autoSaveStatus} lastSaved={lastSaved} />
+                        <span className="text-xs text-gray-600 hidden md:block">Ctrl+S to save</span>
+                        <AdminButton onClick={handleSave} disabled={saving}>
+                            <Save className="w-4 h-4 mr-2" />
+                            {saving ? 'Saving...' : 'Save Changes'}
+                        </AdminButton>
+                    </div>
                 }
             />
 
-            <div className="max-w-6xl space-y-6">
+            <div className="max-w-6xl grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Main Content */}
                 <AdminCard title="Section Content" accentColor="orange">
                     <div className="space-y-4">
@@ -480,169 +553,408 @@ export default function AboutEditor() {
                     </div>
                 </AdminCard>
 
-                {/* Team Members */}
-                <AdminCard title="Team Members" accentColor="blue">
-                    {content.team.length === 0 ? (
-                        <AdminEmptyState
-                            icon={<Users className="w-12 h-12" />}
-                            title="No team members"
-                            description="Add your first team member"
-                            action={
-                                <AdminButton onClick={() => setShowMemberForm(true)}>
+                {/* Team Members - Individual Cards */}
+                <div className="xl:col-span-2">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 className="text-lg font-semibold text-white">Team Members</h2>
+                            <p className="text-gray-500 text-sm">{content.team.length} member{content.team.length !== 1 ? 's' : ''}</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {/* Team Member Cards */}
+                        {content.team.map((member, i) => (
+                            <div
+                                key={i}
+                                onClick={() => setEditingMember(i)}
+                                className="bg-black/40 rounded-xl border border-orange-500/20 p-5 hover:border-orange-500/40 hover:bg-black/50 transition-all cursor-pointer group"
+                            >
+                                {/* Profile Image with Orange Ring */}
+                                <div className="flex justify-center mb-4">
+                                    <div className="w-16 h-16 rounded-full p-0.5 bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/20">
+                                        <div className="w-full h-full rounded-full bg-black overflow-hidden">
+                                            {member.image ? (
+                                                <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-black/80">
+                                                    <User className="w-7 h-7 text-orange-400/50" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Info */}
+                                <div className="text-center">
+                                    <h4 className="text-white font-medium text-sm mb-0.5">{member.name || 'Unnamed'}</h4>
+                                    <p className="text-orange-400/70 text-xs mb-2">{member.role || 'No role'}</p>
+                                    {member.bio && (
+                                        <p className="text-gray-600 text-xs line-clamp-2 mb-3">{member.bio}</p>
+                                    )}
+                                </div>
+
+                                {/* Social Links */}
+                                {(member.portfolio || member.github || member.linkedin) && (
+                                    <div className="flex justify-center gap-2 pt-3 border-t border-orange-500/10">
+                                        {member.portfolio && (
+                                            <a href={member.portfolio} target="_blank" rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/20 transition-all">
+                                                <Globe className="w-3.5 h-3.5" />
+                                            </a>
+                                        )}
+                                        {member.github && (
+                                            <a href={member.github} target="_blank" rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400/50 hover:text-orange-400 hover:bg-orange-500/20 transition-all">
+                                                <Github className="w-3.5 h-3.5" />
+                                            </a>
+                                        )}
+                                        {member.linkedin && (
+                                            <a href={member.linkedin} target="_blank" rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400/50 hover:text-blue-400 hover:bg-blue-500/10 transition-all">
+                                                <Linkedin className="w-3.5 h-3.5" />
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Edit hint */}
+                                <div className="mt-3 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="text-[10px] text-orange-400/50 font-mono uppercase">Click to edit</span>
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Add New Member Card */}
+                        <button
+                            onClick={() => setShowMemberForm(true)}
+                            className="bg-black/20 rounded-xl border border-dashed border-orange-500/30 p-5 min-h-[200px] flex flex-col items-center justify-center gap-3 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all group"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center group-hover:border-orange-500/50 group-hover:bg-orange-500/20 transition-all">
+                                <Plus className="w-6 h-6 text-orange-400/60 group-hover:text-orange-400 transition-colors" />
+                            </div>
+                            <span className="text-xs text-orange-400/60 font-medium group-hover:text-orange-400 transition-colors">Add Member</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Edit Member Dialog */}
+                {editingMember !== null && content.team[editingMember] && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity"
+                            onClick={() => setEditingMember(null)}
+                        />
+                        {/* Dialog */}
+                        <div className="relative bg-black rounded-2xl border border-orange-500/30 p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-orange-500/10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+                            {/* Close Button */}
+                            <button onClick={() => setEditingMember(null)} className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all">
+                                <X className="w-4 h-4" />
+                            </button>
+
+                            {/* Profile Image at Top with Edit Controls */}
+                            <div className="flex flex-col items-center mb-6">
+                                <div className="relative">
+                                    <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30">
+                                        <div className="w-full h-full rounded-full bg-black overflow-hidden">
+                                            {content.team[editingMember].image ? (
+                                                <img src={content.team[editingMember].image} alt={content.team[editingMember].name} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <User className="w-10 h-10 text-orange-400/50" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {/* Image Edit Controls - Right Side */}
+                                    <div className="absolute -right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+                                        <label className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-400 flex items-center justify-center cursor-pointer transition-colors shadow-lg border-2 border-black" title="Upload Image">
+                                            <Upload className="w-4 h-4 text-white" />
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setCropperImage(reader.result as string);
+                                                            setCropperTarget('edit');
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        {content.team[editingMember].image && (
+                                            <>
+                                                <button
+                                                    onClick={() => {
+                                                        setCropperImage(content.team[editingMember].image);
+                                                        setCropperTarget('edit');
+                                                    }}
+                                                    className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-400 flex items-center justify-center transition-colors shadow-lg border-2 border-black"
+                                                    title="Edit Crop"
+                                                >
+                                                    <Move className="w-4 h-4 text-white" />
+                                                </button>
+                                                <button
+                                                    onClick={() => updateMember(editingMember, 'image', '')}
+                                                    className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-colors shadow-lg border-2 border-black"
+                                                    title="Remove Image"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-white" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                                <h3 className="text-xl font-semibold text-white mt-4">{content.team[editingMember].name || 'Edit Profile'}</h3>
+                                <p className="text-orange-400/70 text-sm">{content.team[editingMember].role || 'Team Member'}</p>
+                            </div>
+
+                            {/* Form Content */}
+                            <div className="space-y-4">
+                                {/* Basic Info - Two Column */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <AdminInput
+                                        label="Name"
+                                        value={content.team[editingMember].name}
+                                        onChange={(v) => updateMember(editingMember, 'name', v)}
+                                        placeholder="Full Name"
+                                    />
+                                    <AdminInput
+                                        label="Role"
+                                        value={content.team[editingMember].role}
+                                        onChange={(v) => updateMember(editingMember, 'role', v)}
+                                        placeholder="Job Title"
+                                    />
+                                </div>
+
+                                <AdminTextarea
+                                    label="Bio"
+                                    value={content.team[editingMember].bio}
+                                    onChange={(v) => updateMember(editingMember, 'bio', v)}
+                                    rows={3}
+                                    placeholder="Short bio about this team member..."
+                                />
+
+                                {/* Social Links - Two Column */}
+                                <div className="pt-4 border-t border-white/10">
+                                    <p className="text-xs font-mono text-gray-500 uppercase mb-3">Social Links</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <AdminInput
+                                            label="Portfolio"
+                                            value={content.team[editingMember].portfolio || ''}
+                                            onChange={(v) => updateMember(editingMember, 'portfolio', v)}
+                                            icon={<Globe className="w-4 h-4" />}
+                                            placeholder="https://..."
+                                        />
+                                        <AdminInput
+                                            label="GitHub"
+                                            value={content.team[editingMember].github || ''}
+                                            onChange={(v) => updateMember(editingMember, 'github', v)}
+                                            icon={<Github className="w-4 h-4" />}
+                                            placeholder="https://github.com/..."
+                                        />
+                                        <AdminInput
+                                            label="LinkedIn"
+                                            value={content.team[editingMember].linkedin || ''}
+                                            onChange={(v) => updateMember(editingMember, 'linkedin', v)}
+                                            icon={<Linkedin className="w-4 h-4" />}
+                                            placeholder="https://linkedin.com/in/..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 mt-6 pt-4 border-t border-white/10">
+                                <AdminButton onClick={() => setEditingMember(null)} className="flex-1">
+                                    Save & Close
+                                </AdminButton>
+                                <AdminButton variant="danger" onClick={() => { removeMember(editingMember); setEditingMember(null); }}>
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete
+                                </AdminButton>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Add Member Dialog */}
+                {showMemberForm && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        {/* Backdrop */}
+                        <div
+                            className="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity"
+                            onClick={() => setShowMemberForm(false)}
+                        />
+                        {/* Dialog */}
+                        <div className="relative bg-black rounded-2xl border border-orange-500/30 p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-orange-500/10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+                            {/* Close Button */}
+                            <button onClick={() => setShowMemberForm(false)} className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all">
+                                <X className="w-4 h-4" />
+                            </button>
+
+                            {/* Profile Image Placeholder at Top with Upload */}
+                            <div className="flex flex-col items-center mb-6">
+                                <div className="relative">
+                                    <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30">
+                                        <div className="w-full h-full rounded-full bg-black overflow-hidden">
+                                            {newMember.image ? (
+                                                <img src={newMember.image} alt="New member" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <User className="w-10 h-10 text-orange-400/50" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    {/* Image Upload Controls - Right Side */}
+                                    <div className="absolute -right-3 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+                                        <label className="w-8 h-8 rounded-full bg-orange-500 hover:bg-orange-400 flex items-center justify-center cursor-pointer transition-colors shadow-lg border-2 border-black" title="Upload Image">
+                                            <Upload className="w-4 h-4 text-white" />
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setCropperImage(reader.result as string);
+                                                            setCropperTarget('new');
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+                                        {newMember.image && (
+                                            <>
+                                                <button
+                                                    onClick={() => {
+                                                        setCropperImage(newMember.image);
+                                                        setCropperTarget('new');
+                                                    }}
+                                                    className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-400 flex items-center justify-center transition-colors shadow-lg border-2 border-black"
+                                                    title="Edit Crop"
+                                                >
+                                                    <Move className="w-4 h-4 text-white" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setNewMember({ ...newMember, image: '' })}
+                                                    className="w-8 h-8 rounded-full bg-red-500 hover:bg-red-400 flex items-center justify-center transition-colors shadow-lg border-2 border-black"
+                                                    title="Remove Image"
+                                                >
+                                                    <Trash2 className="w-4 h-4 text-white" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                                <h3 className="text-xl font-semibold text-white mt-4">Add Team Member</h3>
+                                <p className="text-gray-500 text-sm">Create a new profile</p>
+                            </div>
+
+                            {/* Form Content */}
+                            <div className="space-y-4">
+                                {/* Basic Info - Two Column */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <AdminInput
+                                        label="Name"
+                                        value={newMember.name}
+                                        onChange={(v) => setNewMember({ ...newMember, name: v })}
+                                        placeholder="Full name"
+                                    />
+                                    <AdminInput
+                                        label="Role"
+                                        value={newMember.role}
+                                        onChange={(v) => setNewMember({ ...newMember, role: v })}
+                                        placeholder="Job title"
+                                    />
+                                </div>
+
+                                <AdminTextarea
+                                    label="Bio"
+                                    value={newMember.bio}
+                                    onChange={(v) => setNewMember({ ...newMember, bio: v })}
+                                    placeholder="Short bio about this team member..."
+                                    rows={3}
+                                />
+
+                                {/* Social Links - Two Column */}
+                                <div className="pt-4 border-t border-white/10">
+                                    <p className="text-xs font-mono text-gray-500 uppercase mb-3">Social Links (Optional)</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <AdminInput
+                                            label="Portfolio"
+                                            value={newMember.portfolio || ''}
+                                            onChange={(v) => setNewMember({ ...newMember, portfolio: v })}
+                                            icon={<Globe className="w-4 h-4" />}
+                                            placeholder="https://..."
+                                        />
+                                        <AdminInput
+                                            label="GitHub"
+                                            value={newMember.github || ''}
+                                            onChange={(v) => setNewMember({ ...newMember, github: v })}
+                                            icon={<Github className="w-4 h-4" />}
+                                            placeholder="https://github.com/..."
+                                        />
+                                        <AdminInput
+                                            label="LinkedIn"
+                                            value={newMember.linkedin || ''}
+                                            onChange={(v) => setNewMember({ ...newMember, linkedin: v })}
+                                            icon={<Linkedin className="w-4 h-4" />}
+                                            placeholder="https://linkedin.com/in/..."
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 mt-6 pt-4 border-t border-white/10">
+                                <AdminButton onClick={addMember} disabled={!newMember.name || !newMember.role} className="flex-1">
                                     <Plus className="w-4 h-4 mr-2" />
                                     Add Member
                                 </AdminButton>
-                            }
-                        />
-                    ) : (
-                        <div className="space-y-4">
-                            {/* Team Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {content.team.map((member, i) => (
-                                    <div key={i} className="relative group">
-                                        {editingMember === i ? (
-                                            // Edit Mode
-                                            <div className="bg-black/40 p-4 rounded-xl border border-orange-500/30 space-y-3">
-                                                <AdminInput
-                                                    label="Name"
-                                                    value={member.name}
-                                                    onChange={(v) => updateMember(i, 'name', v)}
-                                                />
-                                                <AdminInput
-                                                    label="Role"
-                                                    value={member.role}
-                                                    onChange={(v) => updateMember(i, 'role', v)}
-                                                />
-                                                <ImageUpload
-                                                    label="Profile Image"
-                                                    value={member.image}
-                                                    onChange={(v) => updateMember(i, 'image', v)}
-                                                />
-                                                <AdminTextarea
-                                                    label="Bio"
-                                                    value={member.bio}
-                                                    onChange={(v) => updateMember(i, 'bio', v)}
-                                                    rows={2}
-                                                />
-                                                <div className="grid grid-cols-1 gap-2">
-                                                    <AdminInput
-                                                        label="Portfolio"
-                                                        value={member.portfolio || ''}
-                                                        onChange={(v) => updateMember(i, 'portfolio', v)}
-                                                        icon={<Globe className="w-4 h-4" />}
-                                                    />
-                                                    <AdminInput
-                                                        label="GitHub"
-                                                        value={member.github || ''}
-                                                        onChange={(v) => updateMember(i, 'github', v)}
-                                                        icon={<Github className="w-4 h-4" />}
-                                                    />
-                                                    <AdminInput
-                                                        label="LinkedIn"
-                                                        value={member.linkedin || ''}
-                                                        onChange={(v) => updateMember(i, 'linkedin', v)}
-                                                        icon={<Linkedin className="w-4 h-4" />}
-                                                    />
-                                                </div>
-                                                <AdminButton size="sm" onClick={() => setEditingMember(null)}>
-                                                    Done Editing
-                                                </AdminButton>
-                                            </div>
-                                        ) : (
-                                            // View Mode
-                                            <div className="bg-black/30 p-4 rounded-xl border border-white/5 hover:border-white/10 transition-all">
-                                                <div className="flex items-start gap-3 mb-3">
-                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500/20 to-orange-500/5 border border-orange-500/20 flex items-center justify-center overflow-hidden shrink-0">
-                                                        {member.image ? (
-                                                            <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <User className="w-6 h-6 text-orange-400" />
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="text-white font-medium">{member.name}</h4>
-                                                        <p className="text-orange-400 text-sm">{member.role}</p>
-                                                    </div>
-                                                </div>
-                                                <p className="text-gray-500 text-sm line-clamp-2 mb-3">{member.bio}</p>
-                                                <div className="flex gap-2">
-                                                    <AdminButton size="sm" variant="ghost" onClick={() => setEditingMember(i)}>
-                                                        <Edit3 className="w-4 h-4" />
-                                                    </AdminButton>
-                                                    <AdminButton size="sm" variant="danger" onClick={() => removeMember(i)}>
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </AdminButton>
-                                                    <div className="flex gap-1 ml-auto">
-                                                        {member.github && (
-                                                            <a href={member.github} target="_blank" rel="noopener noreferrer" className="p-1 text-gray-500 hover:text-white">
-                                                                <Github className="w-4 h-4" />
-                                                            </a>
-                                                        )}
-                                                        {member.linkedin && (
-                                                            <a href={member.linkedin} target="_blank" rel="noopener noreferrer" className="p-1 text-gray-500 hover:text-blue-400">
-                                                                <Linkedin className="w-4 h-4" />
-                                                            </a>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Add Member Button */}
-                            {!showMemberForm && (
-                                <AdminButton variant="secondary" onClick={() => setShowMemberForm(true)}>
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Add Team Member
-                                </AdminButton>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Add New Member Form */}
-                    {showMemberForm && (
-                        <div className="mt-4 bg-black/40 p-4 rounded-xl border border-dashed border-green-500/30 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <p className="text-green-400 text-xs font-mono">+ NEW TEAM MEMBER</p>
-                                <button onClick={() => setShowMemberForm(false)} className="text-gray-500 hover:text-white">
-                                    <X className="w-4 h-4" />
+                                <button
+                                    onClick={() => setShowMemberForm(false)}
+                                    className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                >
+                                    Cancel
                                 </button>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <AdminInput
-                                    label="Name"
-                                    value={newMember.name}
-                                    onChange={(v) => setNewMember({ ...newMember, name: v })}
-                                    placeholder="Full name"
-                                />
-                                <AdminInput
-                                    label="Role"
-                                    value={newMember.role}
-                                    onChange={(v) => setNewMember({ ...newMember, role: v })}
-                                    placeholder="e.g., Developer"
-                                />
-                            </div>
-                            <ImageUpload
-                                label="Profile Image"
-                                value={newMember.image}
-                                onChange={(v) => setNewMember({ ...newMember, image: v })}
-                            />
-                            <AdminTextarea
-                                label="Bio"
-                                value={newMember.bio}
-                                onChange={(v) => setNewMember({ ...newMember, bio: v })}
-                                placeholder="Short biography..."
-                                rows={2}
-                            />
-                            <AdminButton onClick={addMember} disabled={!newMember.name || !newMember.role}>
-                                <Plus className="w-4 h-4 mr-2" />
-                                Add Member
-                            </AdminButton>
                         </div>
-                    )}
-                </AdminCard>
+                    </div>
+                )}
+
+                {/* Image Cropper Modal */}
+                {cropperImage && cropperTarget && (
+                    <ImageCropper
+                        imageSrc={cropperImage}
+                        onCrop={(croppedImage) => {
+                            if (cropperTarget === 'edit' && editingMember !== null) {
+                                updateMember(editingMember, 'image', croppedImage);
+                            } else if (cropperTarget === 'new') {
+                                setNewMember({ ...newMember, image: croppedImage });
+                            }
+                            setCropperImage(null);
+                            setCropperTarget(null);
+                        }}
+                        onCancel={() => {
+                            setCropperImage(null);
+                            setCropperTarget(null);
+                        }}
+                    />
+                )}
             </div>
         </div>
     );

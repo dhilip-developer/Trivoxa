@@ -292,3 +292,135 @@ export const AdminBadge = ({
         </span>
     );
 };
+
+// Auto-save status indicator
+export const AutoSaveIndicator = ({
+    status,
+    lastSaved,
+}: {
+    status: 'idle' | 'saving' | 'saved' | 'error';
+    lastSaved?: Date | null;
+}) => {
+    if (status === 'idle' && !lastSaved) return null;
+
+    const statusStyles = {
+        idle: 'text-gray-500',
+        saving: 'text-orange-400',
+        saved: 'text-green-400',
+        error: 'text-red-400',
+    };
+
+    const statusText = {
+        idle: lastSaved ? `Last saved ${lastSaved.toLocaleTimeString()}` : '',
+        saving: 'Saving...',
+        saved: 'Saved ✓',
+        error: 'Save failed',
+    };
+
+    return (
+        <div className={`flex items-center gap-2 text-xs font-mono ${statusStyles[status]} transition-colors`}>
+            {status === 'saving' && (
+                <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
+                </svg>
+            )}
+            {statusText[status]}
+        </div>
+    );
+};
+
+// Character counter for text fields
+export const CharCounter = ({
+    current,
+    max,
+    className = '',
+}: {
+    current: number;
+    max?: number;
+    className?: string;
+}) => {
+    const isNearLimit = max && current >= max * 0.9;
+    const isOverLimit = max && current > max;
+
+    return (
+        <span className={`text-xs font-mono ${isOverLimit ? 'text-red-400' : isNearLimit ? 'text-yellow-400' : 'text-gray-500'} ${className}`}>
+            {current}{max ? `/${max}` : ''} chars
+        </span>
+    );
+};
+
+// Textarea with character counter
+export const AdminTextareaWithCounter = ({
+    label,
+    value,
+    onChange,
+    placeholder = '',
+    rows = 4,
+    maxLength,
+    icon,
+}: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    placeholder?: string;
+    rows?: number;
+    maxLength?: number;
+    icon?: React.ReactNode;
+}) => (
+    <div className="space-y-2">
+        <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-xs font-mono text-gray-500 uppercase tracking-wide">
+                {icon && <span className="text-orange-400">{icon}</span>}
+                {label}
+            </label>
+            <CharCounter current={value.length} max={maxLength} />
+        </div>
+        <textarea
+            value={value}
+            onChange={(e) => onChange(maxLength ? e.target.value.slice(0, maxLength) : e.target.value)}
+            placeholder={placeholder}
+            rows={rows}
+            className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white font-mono text-sm placeholder:text-gray-600 focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 focus:outline-none transition-all resize-none"
+        />
+    </div>
+);
+
+// Loading button with spinner
+export const AdminButtonWithLoading = ({
+    children,
+    onClick,
+    loading = false,
+    disabled = false,
+    variant = 'primary',
+    className = '',
+}: {
+    children: React.ReactNode;
+    onClick: () => void;
+    loading?: boolean;
+    disabled?: boolean;
+    variant?: 'primary' | 'secondary' | 'danger';
+    className?: string;
+}) => {
+    const variants = {
+        primary: 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/20',
+        secondary: 'bg-white/5 border border-white/10 hover:bg-white/10 text-gray-400 hover:text-white',
+        danger: 'bg-red-500/20 border border-red-500/30 hover:bg-red-500/30 text-red-400',
+    };
+
+    return (
+        <button
+            onClick={onClick}
+            disabled={disabled || loading}
+            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+        >
+            {loading && (
+                <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" className="opacity-75" />
+                </svg>
+            )}
+            {children}
+        </button>
+    );
+};

@@ -172,7 +172,7 @@ export default function LegalPagesEditor() {
                 subtitle="Edit Privacy Policy, Terms of Service, Cookie Policy content"
             />
 
-            <div className="max-w-4xl space-y-4">
+            <div className="max-w-6xl grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {pages.map((page) => (
                     <div
                         key={page.slug}

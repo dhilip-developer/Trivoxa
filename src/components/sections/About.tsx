@@ -142,10 +142,33 @@ const companyData = {
   heroImage: "/modern-office-collaboration.png",
 }
 
+// Skeleton loader for team cards
+function TeamCardSkeleton() {
+  return (
+    <div className="relative bg-black/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 animate-pulse">
+      {/* Profile skeleton */}
+      <div className="relative mb-6">
+        <div className="w-24 h-24 mx-auto rounded-full bg-white/10" />
+      </div>
+      {/* Content skeleton */}
+      <div className="text-center space-y-3">
+        <div className="h-6 bg-white/10 rounded-lg w-3/4 mx-auto" />
+        <div className="h-4 bg-white/10 rounded-lg w-1/2 mx-auto" />
+        <div className="h-20 bg-white/10 rounded-lg w-full" />
+        <div className="flex justify-center gap-3">
+          <div className="w-8 h-8 bg-white/10 rounded-full" />
+          <div className="w-8 h-8 bg-white/10 rounded-full" />
+          <div className="w-8 h-8 bg-white/10 rounded-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function About() {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [aboutData, setAboutData] = useState(companyData)
+  const [loading, setLoading] = useState(true)
 
   // Fetch about content from Firestore
   useEffect(() => {
@@ -176,6 +199,8 @@ export default function About() {
         }
       } catch (error) {
         console.error('Error fetching about:', error)
+      } finally {
+        setLoading(false)
       }
     }
     fetchAbout()
@@ -209,16 +234,36 @@ export default function About() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {aboutData.team.map((member, index) => (
-                <TeamCard
-                  key={index}
-                  name={member.name}
-                  role={member.role}
-                  image={member.image}
-                  bio={member.bio}
-                  social={member.social}
-                />
-              ))}
+              {loading ? (
+                // Show skeleton loaders while loading
+                <>
+                  <TeamCardSkeleton />
+                  <TeamCardSkeleton />
+                  <TeamCardSkeleton />
+                </>
+              ) : aboutData.team.length === 0 ? (
+                // Empty state
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No team members yet</p>
+                </div>
+              ) : (
+                // Render team cards with stagger animation
+                aboutData.team.map((member, index) => (
+                  <div
+                    key={index}
+                    className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                    style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'backwards' }}
+                  >
+                    <TeamCard
+                      name={member.name}
+                      role={member.role}
+                      image={member.image}
+                      bio={member.bio}
+                      social={member.social}
+                    />
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

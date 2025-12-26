@@ -107,7 +107,7 @@ export default function FooterEditor() {
                 }
             />
 
-            <div className="max-w-3xl space-y-6">
+            <div className="max-w-6xl grid grid-cols-1 xl:grid-cols-2 gap-6">
                 {/* Logo & Branding */}
                 <AdminCard title="Branding" accentColor="orange">
                     <div className="space-y-4">

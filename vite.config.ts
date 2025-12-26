@@ -20,4 +20,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    host: true, // Enable network access (0.0.0.0)
+  },
 }));

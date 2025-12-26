@@ -229,7 +229,7 @@ export default function ServicesEditor() {
                 }
             />
 
-            <div className="max-w-4xl space-y-4">
+            <div className="max-w-6xl space-y-4">
                 {/* Search Bar */}
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -314,19 +314,21 @@ export default function ServicesEditor() {
                         />
                     </AdminCard>
                 ) : (
-                    filteredServices.map((service) => (
-                        <ServiceCard
-                            key={service.id}
-                            service={service}
-                            isEditing={editingId === service.id}
-                            isSelected={selectedIds.includes(service.id!)}
-                            onToggleSelect={() => toggleSelect(service.id!)}
-                            onEdit={() => setEditingId(editingId === service.id ? null : service.id!)}
-                            onSave={(data) => handleSaveService(service.id!, data)}
-                            onDelete={() => handleDelete(service.id!)}
-                            saving={saving}
-                        />
-                    ))
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {filteredServices.map((service) => (
+                            <ServiceCard
+                                key={service.id}
+                                service={service}
+                                isEditing={editingId === service.id}
+                                isSelected={selectedIds.includes(service.id!)}
+                                onToggleSelect={() => toggleSelect(service.id!)}
+                                onEdit={() => setEditingId(editingId === service.id ? null : service.id!)}
+                                onSave={(data) => handleSaveService(service.id!, data)}
+                                onDelete={() => handleDelete(service.id!)}
+                                saving={saving}
+                            />
+                        ))}
+                    </div>
                 )}
             </div>
         </div>
@@ -407,7 +409,7 @@ function ServiceCard({
     };
 
     return (
-        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isSelected ? 'ring-2 ring-orange-500/50' : isEditing ? 'ring-2 ring-orange-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
+        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isEditing ? 'lg:col-span-2' : ''} ${isSelected ? 'ring-2 ring-orange-500/50' : isEditing ? 'ring-2 ring-orange-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
             {/* Gradient Background */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
             <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity duration-300 ${isSelected || isEditing ? 'from-orange-500/30 to-orange-600/10 opacity-40' : 'from-orange-500/10 to-transparent group-hover:opacity-30'}`} />

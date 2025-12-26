@@ -182,9 +182,9 @@ export default function FAQEditor() {
                 }
             />
 
-            <div className="max-w-4xl space-y-4">
+            <div className="max-w-6xl grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {/* Search & Filter */}
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="xl:col-span-2 flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                         <input
@@ -211,9 +211,8 @@ export default function FAQEditor() {
                     </div>
                 </div>
 
-                {/* Bulk Selection */}
                 {filteredFAQs.length > 0 && (
-                    <div className="flex items-center gap-4 p-3 bg-black/30 rounded-xl border border-white/5">
+                    <div className="xl:col-span-2 flex items-center gap-4 p-3 bg-black/30 rounded-xl border border-white/5">
                         <button onClick={selectAll} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
                             {selectedIds.length === filteredFAQs.length && filteredFAQs.length > 0 ? (
                                 <CheckSquare className="w-5 h-5 text-cyan-400" />
@@ -228,7 +227,7 @@ export default function FAQEditor() {
                 )}
 
                 {/* Add Form */}
-                <div className={`overflow-hidden transition-all duration-500 ${showAddForm ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className={`xl:col-span-2 overflow-hidden transition-all duration-500 ${showAddForm ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
                     <AdminCard title="New FAQ" accentColor="blue" className="mb-4">
                         <div className="space-y-4">
                             <AdminInput label="Question" value={formData.question || ''} onChange={(v) => setFormData({ ...formData, question: v })} placeholder="How do I...?" />
@@ -254,7 +253,7 @@ export default function FAQEditor() {
 
                 {/* List */}
                 {filteredFAQs.length === 0 ? (
-                    <AdminCard>
+                    <AdminCard className="xl:col-span-2">
                         <AdminEmptyState
                             icon={<HelpCircle className="w-12 h-12" />}
                             title={searchQuery || categoryFilter !== 'all' ? "No matching FAQs" : "No FAQs yet"}
@@ -311,7 +310,7 @@ function FAQCard({
     }, [faq, isEditing]);
 
     return (
-        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isSelected || isEditing ? 'ring-2 ring-cyan-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
+        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isEditing ? 'xl:col-span-2' : ''} ${isSelected || isEditing ? 'ring-2 ring-cyan-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
             <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity ${isSelected || isEditing ? 'from-cyan-500/30 to-cyan-600/10 opacity-40' : 'from-cyan-500/10 to-transparent group-hover:opacity-30'}`} />
 

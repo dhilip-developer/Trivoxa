@@ -111,6 +111,12 @@ export interface SiteSettings {
     // Contact mode: 'free' = WhatsApp direct, 'rush' = Appointment booking
     contactMode?: 'free' | 'rush';
     whatsappNumber?: string;
+    // Admin access control
+    allowedPhones?: { phone: string; name: string; enabled: boolean }[];
+    // Admin credentials (ID/Password login)
+    adminCredentials?: { id: string; password: string; name: string }[];
+    // Allowed Google emails for login
+    allowedEmails?: { email: string; name: string; enabled: boolean }[];
 }
 
 export interface ContactInfo {

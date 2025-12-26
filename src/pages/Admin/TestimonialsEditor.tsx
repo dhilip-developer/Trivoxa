@@ -152,7 +152,7 @@ export default function TestimonialsEditor() {
                 }
             />
 
-            <div className="max-w-4xl space-y-4">
+            <div className="max-w-6xl grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {/* Search */}
                 <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />

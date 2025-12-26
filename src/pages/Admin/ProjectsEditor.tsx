@@ -238,7 +238,7 @@ export default function ProjectsEditor() {
                 }
             />
 
-            <div className="max-w-4xl space-y-4">
+            <div className="max-w-6xl space-y-4">
                 {/* Search & Category Filter */}
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1 max-w-md">
@@ -383,21 +383,23 @@ export default function ProjectsEditor() {
                         />
                     </AdminCard>
                 ) : (
-                    filteredProjects.map((project) => (
-                        <ProjectCard
-                            key={project.id}
-                            project={project}
-                            categories={categories}
-                            isEditing={editingId === project.id}
-                            isSelected={selectedIds.includes(project.id!)}
-                            onToggleSelect={() => toggleSelect(project.id!)}
-                            onEdit={() => setEditingId(editingId === project.id ? null : project.id!)}
-                            onSave={(data) => handleSaveProject(project.id!, data)}
-                            onDelete={() => handleDelete(project.id!)}
-                            saving={saving}
-                            showToast={showToast}
-                        />
-                    ))
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {filteredProjects.map((project) => (
+                            <ProjectCard
+                                key={project.id}
+                                project={project}
+                                categories={categories}
+                                isEditing={editingId === project.id}
+                                isSelected={selectedIds.includes(project.id!)}
+                                onToggleSelect={() => toggleSelect(project.id!)}
+                                onEdit={() => setEditingId(editingId === project.id ? null : project.id!)}
+                                onSave={(data) => handleSaveProject(project.id!, data)}
+                                onDelete={() => handleDelete(project.id!)}
+                                saving={saving}
+                                showToast={showToast}
+                            />
+                        ))}
+                    </div>
                 )}
             </div>
         </div>
@@ -486,7 +488,7 @@ function ProjectCard({
     };
 
     return (
-        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isSelected || isEditing ? 'ring-2 ring-purple-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
+        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isEditing ? 'lg:col-span-2' : ''} ${isSelected || isEditing ? 'ring-2 ring-purple-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
             {/* Gradient Background */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
             <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity duration-300 ${isSelected || isEditing ? 'from-purple-500/30 to-purple-600/10 opacity-40' : 'from-purple-500/10 to-transparent group-hover:opacity-30'}`} />
