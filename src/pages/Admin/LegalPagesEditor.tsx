@@ -11,7 +11,7 @@ import {
     AdminButton,
     AdminLoader,
 } from '../../components/Admin';
-import { Save, FileText, Shield, Cookie, Scale, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, FileText, Shield, Cookie, Scale, ChevronDown } from 'lucide-react';
 
 // Default legal page content
 const defaultLegalPages: LegalPage[] = [
@@ -172,11 +172,11 @@ export default function LegalPagesEditor() {
                 subtitle="Edit Privacy Policy, Terms of Service, Cookie Policy content"
             />
 
-            <div className="max-w-6xl grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div className="max-w-6xl flex flex-col gap-4">
                 {pages.map((page) => (
                     <div
                         key={page.slug}
-                        className={`bg-gradient-to-br ${pageColors[page.slug] || pageColors.privacy} backdrop-blur-xl border rounded-2xl overflow-hidden transition-all duration-500`}
+                        className={`bg-gradient-to-br ${pageColors[page.slug] || pageColors.privacy} backdrop-blur-xl border rounded-2xl overflow-hidden transition-none`}
                     >
                         {/* Header */}
                         <div
@@ -190,17 +190,16 @@ export default function LegalPagesEditor() {
                                 <h3 className="text-white font-bold">{page.title}</h3>
                                 <p className="text-gray-500 text-sm font-mono">/{page.slug}</p>
                             </div>
-                            <div className={`transition-transform duration-300`}>
-                                {expandedPage === page.slug ? (
-                                    <ChevronUp className="w-5 h-5 text-gray-500" />
-                                ) : (
-                                    <ChevronDown className="w-5 h-5 text-gray-500" />
-                                )}
+                            <div className={`transition-transform duration-300 ${expandedPage === page.slug ? 'rotate-180' : ''}`}>
+                                <ChevronDown className={`w-5 h-5 ${expandedPage === page.slug ? 'text-orange-400' : 'text-gray-500'}`} />
                             </div>
                         </div>
 
                         {/* Expanded Editor */}
-                        <div className={`transition-all duration-500 ease-in-out ${expandedPage === page.slug ? 'max-h-[90vh] md:max-h-[2000px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                        <div
+                            className={`transition-[max-height,opacity] duration-300 ease-out ${expandedPage === page.slug ? 'max-h-[90vh] md:max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
+                            style={{ overflow: expandedPage === page.slug ? 'auto' : 'hidden' }}
+                        >
                             <div className="p-4 pt-0 border-t border-white/5 space-y-4">
                                 <AdminInput
                                     label="Page Title"

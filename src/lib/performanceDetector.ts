@@ -1,22 +1,10 @@
 /**
- * Performance Detection Utility
- * Detects device capabilities and returns optimal WebGL/Three.js settings
+ * Performance Detector
+ * Detects device capabilities and returns optimized settings
+ * for GPU-accelerated animations and effects.
  */
 
 export type PerformanceTier = 'high' | 'medium' | 'low' | 'fallback';
-
-export interface PerformanceSettings {
-    tier: PerformanceTier;
-    particleCount: number;
-    iconCount: number;
-    pixelRatio: number;
-    antialias: boolean;
-    enableBloom: boolean;
-    frameSkip: number;
-    enableIcons: boolean;
-    textureSize: number;
-    maxFPS: number;
-}
 
 export interface DeviceInfo {
     isMobile: boolean;
@@ -34,216 +22,141 @@ export interface DeviceInfo {
     score: number;
 }
 
-// Known GPU tiers for scoring
-const GPU_TIERS: Record<string, number> = {
-    // High-end desktop GPUs
-    'nvidia geforce rtx': 100,
-    'nvidia geforce gtx 10': 90,
-    'nvidia geforce gtx 16': 90,
-    'amd radeon rx 6': 95,
-    'amd radeon rx 5': 85,
-    'apple m1': 85,
-    'apple m2': 90,
-    'apple m3': 95,
-    // Mid-range
-    'nvidia geforce gtx 9': 70,
-    'amd radeon rx 4': 65,
-    'intel iris xe': 65,
-    'intel iris plus': 55,
-    'apple a15': 70,
-    'apple a14': 65,
-    'apple a13': 55,
-    // Low-end / Integrated
-    'intel uhd': 40,
-    'intel hd': 30,
-    'adreno 6': 50,
-    'adreno 5': 35,
-    'mali-g7': 45,
-    'mali-g5': 30,
-    'mali-t': 20,
-    'powervr': 25,
-};
+export interface PerformanceSettings {
+    tier: PerformanceTier;
+    particleCount: number;
+    iconCount: number;
+    pixelRatio: number;
+    antialias: boolean;
+    enableBloom: boolean;
+    frameSkip: number;
+    enableIcons: boolean;
+    textureSize: number;
+    maxFPS: number;
+    enablePostProcessing: boolean;
+    enableShaderParticles: boolean;
+    bloomStrength: number;
+    bloomRadius: number;
+    mouseReactivity: boolean;
+    vignetteIntensity: number;
+}
 
-/**
- * Check if WebGL is available
- */
-function checkWebGL(): { hasWebGL: boolean; hasWebGL2: boolean } {
-    try {
-        const canvas = document.createElement('canvas');
-        const webgl2 = canvas.getContext('webgl2');
-        const webgl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-        return {
-            hasWebGL: !!webgl,
-            hasWebGL2: !!webgl2,
-        };
-    } catch {
-        return { hasWebGL: false, hasWebGL2: false };
-    }
+interface PerformanceResult {
+    settings: PerformanceSettings;
+    deviceInfo: DeviceInfo;
 }
 
 /**
- * Get GPU information from WebGL context
+ * Detect WebGL capabilities
  */
-function getGPUInfo(): { vendor: string; renderer: string } {
+function detectWebGL(): { hasWebGL: boolean; hasWebGL2: boolean; vendor: string; renderer: string } {
     try {
         const canvas = document.createElement('canvas');
-        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
 
-        if (!gl) return { vendor: 'unknown', renderer: 'unknown' };
+        // Try WebGL2 first
+        let gl: WebGLRenderingContext | WebGL2RenderingContext | null =
+            canvas.getContext('webgl2') as WebGL2RenderingContext | null;
+        const hasWebGL2 = !!gl;
 
-        const debugInfo = (gl as WebGLRenderingContext).getExtension('WEBGL_debug_renderer_info');
-        if (debugInfo) {
-            return {
-                vendor: (gl as WebGLRenderingContext).getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) || 'unknown',
-                renderer: (gl as WebGLRenderingContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) || 'unknown',
-            };
+        // Fall back to WebGL1
+        if (!gl) {
+            gl = canvas.getContext('webgl') as WebGLRenderingContext | null ||
+                canvas.getContext('experimental-webgl') as WebGLRenderingContext | null;
         }
 
+        if (!gl) {
+            return { hasWebGL: false, hasWebGL2: false, vendor: 'none', renderer: 'none' };
+        }
+
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        const vendor = debugInfo
+            ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL)
+            : gl.getParameter(gl.VENDOR);
+        const renderer = debugInfo
+            ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+            : gl.getParameter(gl.RENDERER);
+
         return {
-            vendor: (gl as WebGLRenderingContext).getParameter((gl as WebGLRenderingContext).VENDOR) || 'unknown',
-            renderer: (gl as WebGLRenderingContext).getParameter((gl as WebGLRenderingContext).RENDERER) || 'unknown',
+            hasWebGL: true,
+            hasWebGL2,
+            vendor: vendor || 'unknown',
+            renderer: renderer || 'unknown'
         };
     } catch {
-        return { vendor: 'unknown', renderer: 'unknown' };
+        return { hasWebGL: false, hasWebGL2: false, vendor: 'error', renderer: 'error' };
     }
 }
 
 /**
  * Detect if device is mobile or tablet
  */
-function detectMobileDevice(): { isMobile: boolean; isTablet: boolean } {
+function detectDeviceType(): { isMobile: boolean; isTablet: boolean } {
     const userAgent = navigator.userAgent.toLowerCase();
+
     const isMobile = /android|webos|iphone|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-    const isTablet = /ipad|android(?!.*mobile)|tablet/i.test(userAgent);
+    const isTablet = /ipad|android(?!.*mobile)/i.test(userAgent) ||
+        (navigator.maxTouchPoints > 0 && window.innerWidth >= 768);
 
-    // Also check for touch capability
-    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmallScreen = window.innerWidth < 768;
-
-    return {
-        isMobile: isMobile || (hasTouch && isSmallScreen),
-        isTablet: isTablet || (hasTouch && !isSmallScreen && window.innerWidth < 1024),
-    };
+    return { isMobile: isMobile && !isTablet, isTablet };
 }
 
 /**
- * Get device memory (if available)
+ * Calculate a performance score based on device capabilities
  */
-function getDeviceMemory(): number {
-    // @ts-ignore - deviceMemory is not in all browsers
-    return navigator.deviceMemory || 4; // Default to 4GB if not available
-}
+function calculateScore(deviceInfo: Partial<DeviceInfo>): number {
+    let score = 50; // Base score
 
-/**
- * Get hardware concurrency (CPU cores)
- */
-function getHardwareConcurrency(): number {
-    return navigator.hardwareConcurrency || 4; // Default to 4 cores
-}
+    // Hardware factors
+    score += Math.min((deviceInfo.hardwareConcurrency || 2) * 5, 40);
+    score += Math.min((deviceInfo.deviceMemory || 2) * 5, 40);
 
-/**
- * Check for low power mode (battery saver)
- */
-async function checkLowPowerMode(): Promise<boolean> {
-    try {
-        // @ts-ignore - getBattery is not in all browsers
-        if (navigator.getBattery) {
-            // @ts-ignore
-            const battery = await navigator.getBattery();
-            // Consider low power if charging is false and level is low
-            return !battery.charging && battery.level < 0.2;
-        }
-    } catch {
-        // Battery API not available
-    }
-    return false;
-}
+    // Screen resolution factor
+    const pixels = (deviceInfo.screenWidth || 1920) * (deviceInfo.screenHeight || 1080);
+    if (pixels > 4000000) score -= 15; // 4K penalty
+    else if (pixels < 1500000) score += 10; // Low res bonus
 
-/**
- * Calculate GPU score based on renderer string
- */
-function calculateGPUScore(renderer: string): number {
-    const lowerRenderer = renderer.toLowerCase();
+    // WebGL factors
+    if (deviceInfo.hasWebGL2) score += 20;
+    else if (deviceInfo.hasWebGL) score += 10;
+    else score -= 30;
 
-    for (const [key, score] of Object.entries(GPU_TIERS)) {
-        if (lowerRenderer.includes(key)) {
-            return score;
-        }
-    }
+    // Mobile penalty
+    if (deviceInfo.isMobile) score -= 25;
+    else if (deviceInfo.isTablet) score -= 15;
 
-    // Default scores based on common patterns
-    if (lowerRenderer.includes('nvidia') || lowerRenderer.includes('geforce')) return 60;
-    if (lowerRenderer.includes('amd') || lowerRenderer.includes('radeon')) return 55;
-    if (lowerRenderer.includes('apple')) return 60;
-    if (lowerRenderer.includes('intel')) return 35;
-    if (lowerRenderer.includes('mali') || lowerRenderer.includes('adreno')) return 30;
-
-    return 25; // Unknown GPU, assume low-end
-}
-
-/**
- * Calculate overall performance score
- */
-function calculatePerformanceScore(info: Omit<DeviceInfo, 'score'>): number {
-    let score = 0;
-
-    // GPU score (40% weight)
-    const gpuScore = calculateGPUScore(info.gpuRenderer);
-    score += gpuScore * 0.4;
-
-    // Memory score (20% weight)
-    const memoryScore = Math.min(info.deviceMemory / 8, 1) * 100;
-    score += memoryScore * 0.2;
-
-    // CPU cores score (15% weight)
-    const cpuScore = Math.min(info.hardwareConcurrency / 8, 1) * 100;
-    score += cpuScore * 0.15;
-
-    // Screen resolution score (10% weight)
-    const pixelCount = info.screenWidth * info.screenHeight * info.devicePixelRatio;
-    const resolutionScore = pixelCount > 4000000 ? 50 : 80; // Higher res = more work
-    score += resolutionScore * 0.1;
-
-    // Device type penalty (15% weight)
-    if (info.isMobile) {
-        score -= 25; // Mobile penalty
-    } else if (info.isTablet) {
-        score -= 15; // Tablet penalty
-    }
-
-    // Low power mode penalty
-    if (info.isLowPowerMode) {
-        score -= 20;
-    }
-
-    // WebGL2 bonus
-    if (info.hasWebGL2) {
-        score += 5;
+    // GPU-specific adjustments
+    const renderer = (deviceInfo.gpuRenderer || '').toLowerCase();
+    if (renderer.includes('nvidia') || renderer.includes('radeon')) {
+        score += 20; // Dedicated GPU bonus
+    } else if (renderer.includes('intel')) {
+        score -= 5; // Integrated GPU
+    } else if (renderer.includes('mali') || renderer.includes('adreno')) {
+        score -= 10; // Mobile GPU
     }
 
     return Math.max(0, Math.min(100, score));
 }
 
 /**
- * Determine performance tier from score
+ * Get performance tier based on score
  */
-function getTierFromScore(score: number, hasWebGL: boolean): PerformanceTier {
+function getTier(score: number, hasWebGL: boolean): PerformanceTier {
     if (!hasWebGL) return 'fallback';
-    if (score >= 70) return 'high';
-    if (score >= 45) return 'medium';
-    if (score >= 20) return 'low';
+    if (score >= 75) return 'high';
+    if (score >= 50) return 'medium';
+    if (score >= 25) return 'low';
     return 'fallback';
 }
 
 /**
- * Generate optimal settings based on tier
+ * Generate settings based on tier and device info
  */
 function generateSettings(tier: PerformanceTier, deviceInfo: DeviceInfo): PerformanceSettings {
     const baseSettings: Record<PerformanceTier, PerformanceSettings> = {
         high: {
             tier: 'high',
             particleCount: 3000,
-            iconCount: 40,
+            iconCount: 20,
             pixelRatio: Math.min(deviceInfo.devicePixelRatio, 2),
             antialias: true,
             enableBloom: true,
@@ -251,30 +164,48 @@ function generateSettings(tier: PerformanceTier, deviceInfo: DeviceInfo): Perfor
             enableIcons: true,
             textureSize: 128,
             maxFPS: 60,
+            enablePostProcessing: true,
+            enableShaderParticles: true,
+            bloomStrength: 1.2,
+            bloomRadius: 0.8,
+            mouseReactivity: true,
+            vignetteIntensity: 0.4,
         },
         medium: {
             tier: 'medium',
-            particleCount: 1200,
-            iconCount: 15,
+            particleCount: 1500,
+            iconCount: 12,
             pixelRatio: Math.min(deviceInfo.devicePixelRatio, 1.5),
             antialias: false,
-            enableBloom: false,
+            enableBloom: true,
             frameSkip: 1,
             enableIcons: true,
             textureSize: 64,
             maxFPS: 60,
+            enablePostProcessing: true,
+            enableShaderParticles: true,
+            bloomStrength: 0.8,
+            bloomRadius: 0.5,
+            mouseReactivity: true,
+            vignetteIntensity: 0.3,
         },
         low: {
             tier: 'low',
-            particleCount: 400,
-            iconCount: 0,
+            particleCount: 500,
+            iconCount: 6,
             pixelRatio: 1,
             antialias: false,
             enableBloom: false,
-            frameSkip: 2, // Skip every other frame
-            enableIcons: false,
+            frameSkip: 2,
+            enableIcons: true,
             textureSize: 32,
             maxFPS: 30,
+            enablePostProcessing: false,
+            enableShaderParticles: true,
+            bloomStrength: 0,
+            bloomRadius: 0,
+            mouseReactivity: false,
+            vignetteIntensity: 0,
         },
         fallback: {
             tier: 'fallback',
@@ -285,8 +216,14 @@ function generateSettings(tier: PerformanceTier, deviceInfo: DeviceInfo): Perfor
             enableBloom: false,
             frameSkip: 1,
             enableIcons: false,
-            textureSize: 0,
-            maxFPS: 60,
+            textureSize: 32,
+            maxFPS: 30,
+            enablePostProcessing: false,
+            enableShaderParticles: false,
+            bloomStrength: 0,
+            bloomRadius: 0,
+            mouseReactivity: false,
+            vignetteIntensity: 0,
         },
     };
 
@@ -294,58 +231,16 @@ function generateSettings(tier: PerformanceTier, deviceInfo: DeviceInfo): Perfor
 }
 
 /**
- * Main function to detect device performance and return optimal settings
+ * Synchronously detect performance capabilities and return optimized settings
  */
-export async function detectPerformance(): Promise<{ deviceInfo: DeviceInfo; settings: PerformanceSettings }> {
-    const { hasWebGL, hasWebGL2 } = checkWebGL();
-    const { vendor, renderer } = getGPUInfo();
-    const { isMobile, isTablet } = detectMobileDevice();
-    const isLowPowerMode = await checkLowPowerMode();
+export function detectPerformanceSync(): PerformanceResult {
+    // Detect WebGL
+    const { hasWebGL, hasWebGL2, vendor, renderer } = detectWebGL();
 
-    const deviceInfo: Omit<DeviceInfo, 'score'> = {
-        isMobile,
-        isTablet,
-        hasWebGL,
-        hasWebGL2,
-        gpuVendor: vendor,
-        gpuRenderer: renderer,
-        deviceMemory: getDeviceMemory(),
-        hardwareConcurrency: getHardwareConcurrency(),
-        screenWidth: window.innerWidth,
-        screenHeight: window.innerHeight,
-        devicePixelRatio: window.devicePixelRatio || 1,
-        isLowPowerMode,
-    };
+    // Detect device type
+    const { isMobile, isTablet } = detectDeviceType();
 
-    const score = calculatePerformanceScore(deviceInfo);
-    const fullDeviceInfo: DeviceInfo = { ...deviceInfo, score };
-
-    const tier = getTierFromScore(score, hasWebGL);
-    const settings = generateSettings(tier, fullDeviceInfo);
-
-    // Log performance info in development
-    if (import.meta.env.DEV) {
-        console.log('🎮 Performance Detection:', {
-            gpu: renderer,
-            score: Math.round(score),
-            tier,
-            isMobile,
-            memory: `${deviceInfo.deviceMemory}GB`,
-            cores: deviceInfo.hardwareConcurrency,
-        });
-    }
-
-    return { deviceInfo: fullDeviceInfo, settings };
-}
-
-/**
- * Quick sync version for initial render (uses cached or estimates)
- */
-export function detectPerformanceSync(): { deviceInfo: DeviceInfo; settings: PerformanceSettings } {
-    const { hasWebGL, hasWebGL2 } = checkWebGL();
-    const { vendor, renderer } = getGPUInfo();
-    const { isMobile, isTablet } = detectMobileDevice();
-
+    // Gather device info
     const deviceInfo: DeviceInfo = {
         isMobile,
         isTablet,
@@ -353,35 +248,34 @@ export function detectPerformanceSync(): { deviceInfo: DeviceInfo; settings: Per
         hasWebGL2,
         gpuVendor: vendor,
         gpuRenderer: renderer,
-        deviceMemory: getDeviceMemory(),
-        hardwareConcurrency: getHardwareConcurrency(),
-        screenWidth: window.innerWidth,
-        screenHeight: window.innerHeight,
+        deviceMemory: (navigator as unknown as { deviceMemory?: number }).deviceMemory || 4,
+        hardwareConcurrency: navigator.hardwareConcurrency || 4,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
         devicePixelRatio: window.devicePixelRatio || 1,
-        isLowPowerMode: false, // Can't check sync
+        isLowPowerMode: false, // Cannot reliably detect this
         score: 0,
     };
 
-    const score = calculatePerformanceScore(deviceInfo);
-    deviceInfo.score = score;
+    // Calculate score
+    deviceInfo.score = calculateScore(deviceInfo);
 
-    const tier = getTierFromScore(score, hasWebGL);
+    // Determine tier
+    const tier = getTier(deviceInfo.score, hasWebGL);
+
+    // Generate settings
     const settings = generateSettings(tier, deviceInfo);
 
-    return { deviceInfo, settings };
+    return { settings, deviceInfo };
 }
 
 /**
- * Hook-friendly performance context
+ * Async version with benchmark (for more accurate detection)
  */
-let cachedSettings: { deviceInfo: DeviceInfo; settings: PerformanceSettings } | null = null;
-
-export function getCachedPerformance(): { deviceInfo: DeviceInfo; settings: PerformanceSettings } | null {
-    return cachedSettings;
+export async function detectPerformance(): Promise<PerformanceResult> {
+    // For now, just use sync detection
+    // Could add actual GPU benchmarking here in the future
+    return detectPerformanceSync();
 }
 
-export async function initPerformanceDetection(): Promise<{ deviceInfo: DeviceInfo; settings: PerformanceSettings }> {
-    if (cachedSettings) return cachedSettings;
-    cachedSettings = await detectPerformance();
-    return cachedSettings;
-}
+export default detectPerformanceSync;

@@ -226,7 +226,6 @@ const App = () => {
   if (isAdminRoute) {
     return (
       <QueryClientProvider client={queryClient}>
-        <ParticleBackground />
         <AuthProvider>
           <BrowserRouter>
             <Routes>
