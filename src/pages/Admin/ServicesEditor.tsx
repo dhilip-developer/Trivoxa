@@ -259,7 +259,7 @@ export default function ServicesEditor() {
                 )}
 
                 {/* Add New Service Form */}
-                <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showAddForm ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className={`transition-all duration-500 ease-in-out ${showAddForm ? 'max-h-[90vh] md:max-h-[800px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                     <AdminCard title="New Service" accentColor="green" className="mb-4">
                         <div className="space-y-4">
                             <AdminInput
@@ -456,7 +456,7 @@ function ServiceCard({
             </div>
 
             {/* Expandable Edit Section */}
-            <div className={`relative transition-all duration-500 ease-in-out ${isEditing ? 'max-h-[700px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
+            <div className={`relative transition-all duration-500 ease-in-out ${isEditing ? 'max-h-[90vh] md:max-h-[700px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                 <div className="p-5 pt-0 border-t border-white/5 space-y-4">
                     <AdminInput
                         label="Title"

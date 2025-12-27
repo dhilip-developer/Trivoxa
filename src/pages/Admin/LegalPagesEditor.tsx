@@ -200,7 +200,7 @@ export default function LegalPagesEditor() {
                         </div>
 
                         {/* Expanded Editor */}
-                        <div className={`transition-all duration-500 ease-in-out overflow-hidden ${expandedPage === page.slug ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                        <div className={`transition-all duration-500 ease-in-out ${expandedPage === page.slug ? 'max-h-[90vh] md:max-h-[2000px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                             <div className="p-4 pt-0 border-t border-white/5 space-y-4">
                                 <AdminInput
                                     label="Page Title"

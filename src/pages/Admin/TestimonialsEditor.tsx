@@ -182,7 +182,7 @@ export default function TestimonialsEditor() {
                 )}
 
                 {/* Add Form */}
-                <div className={`overflow-hidden transition-all duration-500 ${showAddForm ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className={`transition-all duration-500 ${showAddForm ? 'max-h-[90vh] md:max-h-[600px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                     <AdminCard title="New Testimonial" accentColor="green" className="mb-4">
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -320,7 +320,7 @@ function TestimonialCard({
                 </button>
             </div>
 
-            <div className={`relative transition-all duration-500 ${isEditing ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
+            <div className={`relative transition-all duration-500 ${isEditing ? 'max-h-[90vh] md:max-h-[500px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                 <div className="p-5 pt-0 border-t border-white/5 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
                         <AdminInput label="Name" value={editData.name} onChange={(v) => setEditData({ ...editData, name: v })} />

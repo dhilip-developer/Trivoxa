@@ -227,7 +227,7 @@ export default function FAQEditor() {
                 )}
 
                 {/* Add Form */}
-                <div className={`xl:col-span-2 overflow-hidden transition-all duration-500 ${showAddForm ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                <div className={`xl:col-span-2 transition-all duration-500 ${showAddForm ? 'max-h-[90vh] md:max-h-[500px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                     <AdminCard title="New FAQ" accentColor="blue" className="mb-4">
                         <div className="space-y-4">
                             <AdminInput label="Question" value={formData.question || ''} onChange={(v) => setFormData({ ...formData, question: v })} placeholder="How do I...?" />
@@ -341,7 +341,7 @@ function FAQCard({
                 </button>
             </div>
 
-            <div className={`relative transition-all duration-500 ${isEditing ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'} overflow-hidden`}>
+            <div className={`relative transition-all duration-500 ${isEditing ? 'max-h-[90vh] md:max-h-[400px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                 <div className="p-5 pt-0 border-t border-white/5 space-y-4">
                     <AdminInput label="Question" value={editData.question} onChange={(v) => setEditData({ ...editData, question: v })} />
                     <AdminTextarea label="Answer" value={editData.answer} onChange={(v) => setEditData({ ...editData, answer: v })} rows={3} />
