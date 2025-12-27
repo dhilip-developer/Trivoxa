@@ -188,13 +188,14 @@ function ServiceCard({
     return (
         <motion.div
             ref={cardRef}
+            className="h-full"
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
             transition={{ delay: index * 0.1, duration: 0.5, ease: "easeOut" }}
         >
             <TiltCard className="h-full">
                 <div
-                    className={`relative h-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 overflow-hidden group cursor-pointer hover:border-white/20 transition-all duration-500`}
+                    className={`relative h-full min-h-[220px] bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-5 overflow-hidden group cursor-pointer hover:border-white/20 transition-all duration-500 flex flex-col`}
                     onClick={() => onSelect(service)}
                 >
                     {/* Featured Badge */}
@@ -215,47 +216,51 @@ function ServiceCard({
                     {/* Subtle Grid Pattern */}
                     <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:20px_20px]" />
 
-                    <div className="relative z-10">
+                    <div className="relative z-10 h-full flex flex-col">
                         {/* Icon Container */}
                         <motion.div
-                            className={`relative w-16 h-16 rounded-2xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center mb-5 shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
+                            className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
                             whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
                             transition={{ duration: 0.3 }}
                         >
                             {/* Icon Glow Ring */}
-                            <div className={`absolute inset-0 rounded-2xl ${colors.glow} blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                            <ServiceIcon iconKey={service.icon} className="w-8 h-8 text-white relative z-10" />
+                            <div className={`absolute inset-0 rounded-xl ${colors.glow} blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                            <ServiceIcon iconKey={service.icon} className="w-6 h-6 text-white relative z-10" />
                         </motion.div>
 
                         {/* Title */}
-                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-white/90 transition-colors">
+                        <h3 className="text-lg font-bold text-white mb-1.5 group-hover:text-white/90 transition-colors line-clamp-1">
                             {service.title}
                         </h3>
 
                         {/* Description */}
-                        <p className="text-gray-400 text-sm leading-relaxed mb-4 line-clamp-2 group-hover:text-gray-300 transition-colors">
+                        <p className="text-gray-400 text-sm leading-relaxed mb-3 line-clamp-2 group-hover:text-gray-300 transition-colors">
                             {service.description}
                         </p>
 
                         {/* Feature Tags */}
-                        <div className="flex flex-wrap gap-2 mb-4">
-                            {service.features?.slice(0, 3).map((feature, i) => (
+                        <div className="flex flex-wrap items-center gap-1.5 mt-auto">
+                            {service.features?.slice(0, 2).map((feature, i) => (
                                 <motion.span
                                     key={i}
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={isInView ? { opacity: 1, x: 0 } : {}}
                                     transition={{ delay: index * 0.1 + i * 0.1 + 0.3 }}
-                                    className={`px-3 py-1 text-xs rounded-full bg-white/5 ${colors.border} border ${colors.text} transition-all duration-300 group-hover:bg-white/10`}
+                                    className={`inline-flex items-center justify-center px-3 py-1 text-xs font-medium rounded-full bg-white/5 border border-white/20 ${colors.text} transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/30`}
                                 >
                                     {feature}
                                 </motion.span>
                             ))}
-                        </div>
-
-                        {/* Learn More Link */}
-                        <div className={`flex items-center gap-2 ${colors.text} text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0`}>
-                            <span>Learn more</span>
-                            <ArrowRight className="w-4 h-4" />
+                            {(service.features?.length || 0) > 2 && (
+                                <motion.span
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                                    transition={{ delay: index * 0.1 + 0.5 }}
+                                    className={`inline-flex items-center justify-center px-2.5 py-1 text-xs font-medium rounded-full bg-white/10 ${colors.text} transition-all duration-300`}
+                                >
+                                    +{(service.features?.length || 0) - 2}
+                                </motion.span>
+                            )}
                         </div>
                     </div>
 
@@ -499,7 +504,7 @@ export default function Services() {
                         }}
                     >
                         {services.map((service, index) => (
-                            <div key={index} className="flex-shrink-0 w-[300px] snap-center">
+                            <div key={index} className="flex-shrink-0 w-[280px] min-h-[220px] snap-center">
                                 <ServiceCard
                                     service={service}
                                     index={index}
