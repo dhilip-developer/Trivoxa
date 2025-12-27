@@ -73,6 +73,8 @@ export default function ServicesEditor() {
         features: [],
         order: 0,
         isPublished: true,
+        accentColor: 'orange',
+        featured: false,
     });
     const [featuresInput, setFeaturesInput] = useState('');
 
@@ -123,7 +125,7 @@ export default function ServicesEditor() {
                 updatedAt: serverTimestamp(),
             });
             showToast('Service added', 'success');
-            setFormData({ title: '', description: '', icon: 'globe', features: [], order: 0, isPublished: true });
+            setFormData({ title: '', description: '', icon: 'globe', features: [], order: 0, isPublished: true, accentColor: 'orange', featured: false });
             setFeaturesInput('');
             setShowAddForm(false);
             fetchServices();
@@ -288,6 +290,44 @@ export default function ServicesEditor() {
                                 onChange={setFeaturesInput}
                                 placeholder="React, Node.js, Firebase, etc."
                             />
+
+                            {/* Design Customization */}
+                            <div className="space-y-3 pt-2 border-t border-white/5">
+                                <label className="text-xs font-mono text-gray-500 uppercase flex items-center gap-2">
+                                    <span className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
+                                    Design Customization
+                                </label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs text-gray-500">Accent Color</label>
+                                        <select
+                                            value={formData.accentColor || 'orange'}
+                                            onChange={(e) => setFormData({ ...formData, accentColor: e.target.value as any })}
+                                            className="w-full px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:border-orange-500/50 focus:outline-none"
+                                        >
+                                            <option value="blue">🔵 Blue</option>
+                                            <option value="purple">🟣 Purple</option>
+                                            <option value="cyan">🔷 Cyan</option>
+                                            <option value="pink">💗 Pink</option>
+                                            <option value="orange">🟠 Orange</option>
+                                            <option value="green">🟢 Green</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs text-gray-500">Featured</label>
+                                        <label className="flex items-center gap-3 px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl cursor-pointer hover:border-orange-500/30 transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.featured || false}
+                                                onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                                                className="w-4 h-4 rounded border-gray-600 bg-black/40 text-orange-500"
+                                            />
+                                            <span className="text-sm text-gray-300">⭐ Featured Service</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
                             <AdminButton onClick={handleAddService} disabled={saving || !formData.title}>
                                 <Save className="w-4 h-4 mr-2" />
                                 {saving ? 'Adding...' : 'Add Service'}
@@ -481,6 +521,46 @@ function ServiceCard({
                         value={featuresInput}
                         onChange={setFeaturesInput}
                     />
+                    {/* Design Customization */}
+                    <div className="space-y-3 pt-2 border-t border-white/5">
+                        <label className="text-xs font-mono text-gray-500 uppercase flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
+                            Design Customization
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Accent Color */}
+                            <div className="space-y-2">
+                                <label className="text-xs text-gray-500">Accent Color</label>
+                                <select
+                                    value={editData.accentColor || 'orange'}
+                                    onChange={(e) => setEditData({ ...editData, accentColor: e.target.value as any })}
+                                    className="w-full px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:border-orange-500/50 focus:outline-none"
+                                >
+                                    <option value="blue">🔵 Blue</option>
+                                    <option value="purple">🟣 Purple</option>
+                                    <option value="cyan">🔷 Cyan</option>
+                                    <option value="pink">💗 Pink</option>
+                                    <option value="orange">🟠 Orange</option>
+                                    <option value="green">🟢 Green</option>
+                                </select>
+                            </div>
+
+                            {/* Featured Toggle */}
+                            <div className="space-y-2">
+                                <label className="text-xs text-gray-500">Featured</label>
+                                <label className="flex items-center gap-3 px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl cursor-pointer hover:border-orange-500/30 transition-colors">
+                                    <input
+                                        type="checkbox"
+                                        checked={editData.featured || false}
+                                        onChange={(e) => setEditData({ ...editData, featured: e.target.checked })}
+                                        className="w-4 h-4 rounded border-gray-600 bg-black/40 text-orange-500 focus:ring-orange-500/50"
+                                    />
+                                    <span className="text-sm text-gray-300">⭐ Featured Service</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="flex items-center gap-4">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input

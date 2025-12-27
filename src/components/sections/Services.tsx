@@ -44,7 +44,21 @@ const serviceColors: Record<string, { gradient: string; glow: string; border: st
     zap: { gradient: 'from-yellow-500 to-amber-500', glow: 'bg-yellow-500/20', border: 'border-yellow-500/30', text: 'text-yellow-400' },
 };
 
-function getColorScheme(iconKey?: string) {
+// Color schemes for accent colors from admin panel
+const accentColorSchemes: Record<string, { gradient: string; glow: string; border: string; text: string }> = {
+    blue: { gradient: 'from-blue-500 to-cyan-500', glow: 'bg-blue-500/20', border: 'border-blue-500/30', text: 'text-blue-400' },
+    purple: { gradient: 'from-purple-500 to-pink-500', glow: 'bg-purple-500/20', border: 'border-purple-500/30', text: 'text-purple-400' },
+    cyan: { gradient: 'from-cyan-500 to-teal-500', glow: 'bg-cyan-500/20', border: 'border-cyan-500/30', text: 'text-cyan-400' },
+    pink: { gradient: 'from-pink-500 to-rose-500', glow: 'bg-pink-500/20', border: 'border-pink-500/30', text: 'text-pink-400' },
+    orange: { gradient: 'from-amber-500 to-orange-500', glow: 'bg-amber-500/20', border: 'border-amber-500/30', text: 'text-amber-400' },
+    green: { gradient: 'from-emerald-500 to-green-500', glow: 'bg-emerald-500/20', border: 'border-emerald-500/30', text: 'text-emerald-400' },
+};
+
+function getColorScheme(accentColor?: string, iconKey?: string) {
+    // Priority: accentColor from admin > icon-based color
+    if (accentColor && accentColorSchemes[accentColor]) {
+        return accentColorSchemes[accentColor];
+    }
     return serviceColors[iconKey || 'settings'] || serviceColors.settings;
 }
 
@@ -151,9 +165,10 @@ function ServiceCard({
     index: number;
     onSelect: (service: Partial<Service>) => void;
 }) {
-    const colors = getColorScheme(service.icon);
+    const colors = getColorScheme(service.accentColor, service.icon);
     const cardRef = useRef<HTMLDivElement>(null);
     const isInView = useInView(cardRef, { once: true, margin: "-50px" });
+    const isFeatured = service.featured;
 
     return (
         <motion.div
@@ -167,6 +182,13 @@ function ServiceCard({
                     className={`relative h-full bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 overflow-hidden group cursor-pointer hover:border-white/20 transition-all duration-500`}
                     onClick={() => onSelect(service)}
                 >
+                    {/* Featured Badge */}
+                    {isFeatured && (
+                        <div className="absolute top-3 right-3 z-20 flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-amber-500/80 to-orange-500/80 text-white text-xs font-medium backdrop-blur-sm">
+                            ⭐ Featured
+                        </div>
+                    )}
+
                     {/* Animated Background Glow */}
                     <motion.div
                         className={`absolute -top-20 -right-20 w-40 h-40 ${colors.glow} rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
@@ -443,8 +465,8 @@ export default function Services() {
                                 key={index}
                                 onClick={() => scrollToCard(index)}
                                 className={`w-2 h-2 rounded-full transition-all ${index === activeIndex
-                                        ? 'w-8 bg-orange-500'
-                                        : 'bg-white/20 hover:bg-white/40'
+                                    ? 'w-8 bg-orange-500'
+                                    : 'bg-white/20 hover:bg-white/40'
                                     }`}
                             />
                         ))}

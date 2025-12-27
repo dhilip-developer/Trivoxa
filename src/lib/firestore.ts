@@ -50,6 +50,9 @@ export interface Service {
     features: string[];
     order: number;
     isPublished: boolean;
+    // Design customization options
+    accentColor?: 'blue' | 'purple' | 'cyan' | 'pink' | 'orange' | 'green';
+    featured?: boolean;
 }
 
 export interface Project {
