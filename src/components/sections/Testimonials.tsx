@@ -123,17 +123,16 @@ export default function Testimonials() {
                     </motion.button>
                 </motion.div>
 
-                {/* Testimonials Grid */}
+                {/* Testimonials Display */}
                 {testimonials.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {testimonials.map((testimonial, index) => (
+                    testimonials.length === 1 ? (
+                        /* Single testimonial - centered */
+                        <div className="flex justify-center">
                             <motion.div
-                                key={testimonial.id}
                                 initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                className="group relative"
+                                className="group relative w-full max-w-md"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                 <div className="relative bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:border-orange-500/30 transition-all duration-300">
@@ -145,22 +144,22 @@ export default function Testimonials() {
                                         {[1, 2, 3, 4, 5].map((star) => (
                                             <Star
                                                 key={star}
-                                                className={`w-4 h-4 ${testimonial.rating >= star ? 'text-yellow-400' : 'text-gray-600'}`}
-                                                fill={testimonial.rating >= star ? 'currentColor' : 'none'}
+                                                className={`w-4 h-4 ${testimonials[0].rating >= star ? 'text-yellow-400' : 'text-gray-600'}`}
+                                                fill={testimonials[0].rating >= star ? 'currentColor' : 'none'}
                                             />
                                         ))}
                                     </div>
 
                                     <p className="text-gray-300 mb-6 leading-relaxed">
-                                        "{testimonial.content}"
+                                        "{testimonials[0].content}"
                                     </p>
 
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 border border-white/20 flex items-center justify-center overflow-hidden shadow-lg">
-                                            {testimonial.avatarUrl ? (
+                                            {testimonials[0].avatarUrl ? (
                                                 <img
-                                                    src={testimonial.avatarUrl}
-                                                    alt={testimonial.name}
+                                                    src={testimonials[0].avatarUrl}
+                                                    alt={testimonials[0].name}
                                                     className="w-full h-full object-cover"
                                                     onError={(e) => {
                                                         e.currentTarget.style.display = 'none';
@@ -168,21 +167,87 @@ export default function Testimonials() {
                                                     }}
                                                 />
                                             ) : null}
-                                            <span className={`text-lg font-bold text-white ${testimonial.avatarUrl ? 'hidden' : ''}`}>
-                                                {testimonial.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                                            <span className={`text-lg font-bold text-white ${testimonials[0].avatarUrl ? 'hidden' : ''}`}>
+                                                {testimonials[0].name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                                             </span>
                                         </div>
                                         <div>
-                                            <h4 className="text-white font-semibold">{testimonial.name}</h4>
+                                            <h4 className="text-white font-semibold">{testimonials[0].name}</h4>
                                             <p className="text-gray-500 text-sm">
-                                                {testimonial.role && `${testimonial.role}, `}{testimonial.company}
+                                                {testimonials[0].role && `${testimonials[0].role}, `}{testimonials[0].company}
                                             </p>
                                         </div>
                                     </div>
                                 </div>
                             </motion.div>
-                        ))}
-                    </div>
+                        </div>
+                    ) : (
+                        /* Multiple testimonials - horizontal scrollable row */
+                        <div className="relative">
+                            <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-orange-500/30 scrollbar-track-white/5">
+                                <div className="flex gap-6" style={{ minWidth: 'max-content' }}>
+                                    {testimonials.map((testimonial, index) => (
+                                        <motion.div
+                                            key={testimonial.id}
+                                            initial={{ opacity: 0, y: 30 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            viewport={{ once: true }}
+                                            transition={{ delay: index * 0.1 }}
+                                            className="group relative w-[350px] flex-shrink-0"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                            <div className="relative bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:border-orange-500/30 transition-all duration-300 h-full">
+                                                <div className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                                                    <Quote className="w-5 h-5 text-white" />
+                                                </div>
+
+                                                <div className="flex gap-1 mb-4">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <Star
+                                                            key={star}
+                                                            className={`w-4 h-4 ${testimonial.rating >= star ? 'text-yellow-400' : 'text-gray-600'}`}
+                                                            fill={testimonial.rating >= star ? 'currentColor' : 'none'}
+                                                        />
+                                                    ))}
+                                                </div>
+
+                                                <p className="text-gray-300 mb-6 leading-relaxed line-clamp-4">
+                                                    "{testimonial.content}"
+                                                </p>
+
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 border border-white/20 flex items-center justify-center overflow-hidden shadow-lg">
+                                                        {testimonial.avatarUrl ? (
+                                                            <img
+                                                                src={testimonial.avatarUrl}
+                                                                alt={testimonial.name}
+                                                                className="w-full h-full object-cover"
+                                                                onError={(e) => {
+                                                                    e.currentTarget.style.display = 'none';
+                                                                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                                }}
+                                                            />
+                                                        ) : null}
+                                                        <span className={`text-lg font-bold text-white ${testimonial.avatarUrl ? 'hidden' : ''}`}>
+                                                            {testimonial.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-white font-semibold">{testimonial.name}</h4>
+                                                        <p className="text-gray-500 text-sm">
+                                                            {testimonial.role && `${testimonial.role}, `}{testimonial.company}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Scroll hint gradient */}
+                            <div className="absolute right-0 top-0 bottom-4 w-16 bg-gradient-to-l from-[#0a0a0a] to-transparent pointer-events-none" />
+                        </div>
+                    )
                 ) : (
                     <div className="text-center text-gray-500 py-12">
                         <Quote className="w-12 h-12 mx-auto mb-4 opacity-50" />
