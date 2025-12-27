@@ -494,7 +494,7 @@ function ProjectCard({
             <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity duration-300 ${isSelected || isEditing ? 'from-purple-500/30 to-purple-600/10 opacity-40' : 'from-purple-500/10 to-transparent group-hover:opacity-30'}`} />
 
             {/* Header */}
-            <div className="relative flex items-center gap-4 p-5 cursor-pointer" onClick={onEdit}>
+            <div className="relative flex items-center gap-4 p-5 min-h-[88px] cursor-pointer" onClick={onEdit}>
                 {/* Checkbox */}
                 <button
                     onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
@@ -518,13 +518,13 @@ function ProjectCard({
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h3 className="text-white font-semibold text-lg">{editData.title}</h3>
-                        <span className="px-2 py-0.5 text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-full font-mono">{editData.category}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-white font-semibold text-lg truncate max-w-[80px] sm:max-w-none">{editData.title}</h3>
+                        <span className="px-2 py-0.5 text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-full font-mono shrink-0 hidden sm:inline">{editData.category}</span>
                         {project.isPublished ? (
-                            <span className="px-2 py-0.5 text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-mono uppercase">Live</span>
+                            <span className="px-2 py-0.5 text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-mono uppercase shrink-0">Live</span>
                         ) : (
-                            <span className="px-2 py-0.5 text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full font-mono uppercase">Draft</span>
+                            <span className="px-2 py-0.5 text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full font-mono uppercase shrink-0">Draft</span>
                         )}
                     </div>
                     <p className="text-gray-400 text-sm line-clamp-1">{editData.description}</p>

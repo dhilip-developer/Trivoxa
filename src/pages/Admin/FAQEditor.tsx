@@ -314,7 +314,7 @@ function FAQCard({
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
             <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity ${isSelected || isEditing ? 'from-cyan-500/30 to-cyan-600/10 opacity-40' : 'from-cyan-500/10 to-transparent group-hover:opacity-30'}`} />
 
-            <div className="relative flex items-center gap-4 p-5">
+            <div className="relative flex items-center gap-4 p-5 min-h-[88px]">
                 <button onClick={(e) => { e.stopPropagation(); onToggleSelect(); }} className="shrink-0">
                     {isSelected ? <CheckSquare className="w-5 h-5 text-cyan-400" /> : <Square className="w-5 h-5 text-gray-500 hover:text-gray-400" />}
                 </button>
@@ -324,13 +324,13 @@ function FAQCard({
                 </div>
 
                 <div className="flex-1 min-w-0 cursor-pointer" onClick={onEdit}>
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <h3 className="text-white font-semibold">{faq.question}</h3>
-                        <span className="px-2 py-0.5 text-[10px] bg-gray-500/20 text-gray-400 border border-gray-500/30 rounded-full font-mono">{faq.category}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                        <h3 className="text-white font-semibold truncate max-w-[120px] sm:max-w-none">{faq.question}</h3>
+                        <span className="px-2 py-0.5 text-[10px] bg-gray-500/20 text-gray-400 border border-gray-500/30 rounded-full font-mono shrink-0 hidden sm:inline">{faq.category}</span>
                         {faq.isPublished ? (
-                            <span className="px-2 py-0.5 text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-mono uppercase">Live</span>
+                            <span className="px-2 py-0.5 text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-mono uppercase shrink-0">Live</span>
                         ) : (
-                            <span className="px-2 py-0.5 text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full font-mono uppercase">Draft</span>
+                            <span className="px-2 py-0.5 text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full font-mono uppercase shrink-0">Draft</span>
                         )}
                     </div>
                     <p className="text-gray-400 text-sm line-clamp-1">{faq.answer}</p>
