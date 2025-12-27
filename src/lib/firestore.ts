@@ -51,7 +51,7 @@ export interface Service {
     order: number;
     isPublished: boolean;
     // Design customization options
-    accentColor?: 'blue' | 'purple' | 'cyan' | 'pink' | 'orange' | 'green';
+    accentColor?: 'blue' | 'purple' | 'cyan' | 'pink' | 'orange' | 'green' | 'amber' | 'indigo' | 'violet' | 'rose' | 'teal' | 'red';
     featured?: boolean;
 }
 
@@ -66,7 +66,7 @@ export interface Project {
     order: number;
     isPublished: boolean;
     // Design customization options
-    accentColor?: 'blue' | 'purple' | 'cyan' | 'pink' | 'orange' | 'green';
+    accentColor?: 'blue' | 'purple' | 'cyan' | 'pink' | 'orange' | 'green' | 'amber' | 'indigo' | 'violet' | 'rose' | 'teal' | 'red';
     featured?: boolean;
     displayStyle?: 'default' | 'minimal' | 'detailed';
 }

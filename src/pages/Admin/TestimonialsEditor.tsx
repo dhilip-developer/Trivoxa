@@ -12,7 +12,7 @@ import {
     AdminLoader,
     AdminEmptyState
 } from '../../components/Admin';
-import { Plus, Save, Trash2, X, Star, Quote, ChevronDown, Eye, EyeOff, Search, CheckSquare, Square } from 'lucide-react';
+import { Plus, Save, Trash2, X, Star, Quote, ChevronDown, Eye, EyeOff, Search, CheckSquare, Square, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 
 export default function TestimonialsEditor() {
     const { showToast } = useToast();
@@ -111,6 +111,42 @@ export default function TestimonialsEditor() {
         }
     };
 
+    const moveUp = async (index: number) => {
+        if (index === 0) return;
+        const newTestimonials = [...testimonials];
+        [newTestimonials[index - 1], newTestimonials[index]] = [newTestimonials[index], newTestimonials[index - 1]];
+
+        // Update order in database
+        try {
+            await Promise.all([
+                updateDoc(doc(db, COLLECTIONS.TESTIMONIALS, newTestimonials[index - 1].id!), { order: index - 1 }),
+                updateDoc(doc(db, COLLECTIONS.TESTIMONIALS, newTestimonials[index].id!), { order: index })
+            ]);
+            setTestimonials(newTestimonials);
+            showToast('Order updated', 'success');
+        } catch (error: any) {
+            showToast(`Error: ${error.message}`, 'error');
+        }
+    };
+
+    const moveDown = async (index: number) => {
+        if (index === testimonials.length - 1) return;
+        const newTestimonials = [...testimonials];
+        [newTestimonials[index], newTestimonials[index + 1]] = [newTestimonials[index + 1], newTestimonials[index]];
+
+        // Update order in database
+        try {
+            await Promise.all([
+                updateDoc(doc(db, COLLECTIONS.TESTIMONIALS, newTestimonials[index].id!), { order: index }),
+                updateDoc(doc(db, COLLECTIONS.TESTIMONIALS, newTestimonials[index + 1].id!), { order: index + 1 })
+            ]);
+            setTestimonials(newTestimonials);
+            showToast('Order updated', 'success');
+        } catch (error: any) {
+            showToast(`Error: ${error.message}`, 'error');
+        }
+    };
+
     const toggleSelect = (id: string) => {
         setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
     };
@@ -152,9 +188,10 @@ export default function TestimonialsEditor() {
                 }
             />
 
-            <div className="max-w-6xl grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {/* Controls Row */}
+            <div className="max-w-4xl flex flex-col sm:flex-row gap-4 mb-6">
                 {/* Search */}
-                <div className="relative max-w-md">
+                <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input
                         type="text"
@@ -177,9 +214,13 @@ export default function TestimonialsEditor() {
                             {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select All'}
                         </button>
                         <span className="text-gray-600 text-sm">|</span>
-                        <span className="text-gray-500 text-sm">{filteredTestimonials.length} testimonials</span>
+                        <span className="text-gray-500 text-sm">{filteredTestimonials.length} reviews</span>
                     </div>
                 )}
+            </div>
+
+            {/* Main Content - Single Column Layout */}
+            <div className="max-w-4xl space-y-4">
 
                 {/* Add Form */}
                 <div className={`transition-all duration-500 ${showAddForm ? 'max-h-[90vh] md:max-h-[600px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
@@ -226,16 +267,20 @@ export default function TestimonialsEditor() {
                         />
                     </AdminCard>
                 ) : (
-                    filteredTestimonials.map(testimonial => (
+                    filteredTestimonials.map((testimonial, index) => (
                         <TestimonialCard
                             key={testimonial.id}
                             testimonial={testimonial}
+                            index={index}
+                            totalCount={filteredTestimonials.length}
                             isEditing={editingId === testimonial.id}
                             isSelected={selectedIds.includes(testimonial.id!)}
                             onToggleSelect={() => toggleSelect(testimonial.id!)}
                             onEdit={() => setEditingId(editingId === testimonial.id ? null : testimonial.id!)}
                             onSave={(data) => handleSave(testimonial.id!, data)}
                             onDelete={() => handleDelete(testimonial.id!)}
+                            onMoveUp={() => moveUp(index)}
+                            onMoveDown={() => moveDown(index)}
                             saving={saving}
                         />
                     ))
@@ -247,21 +292,29 @@ export default function TestimonialsEditor() {
 
 function TestimonialCard({
     testimonial,
+    index,
+    totalCount,
     isEditing,
     isSelected,
     onToggleSelect,
     onEdit,
     onSave,
     onDelete,
+    onMoveUp,
+    onMoveDown,
     saving
 }: {
     testimonial: Testimonial;
+    index: number;
+    totalCount: number;
     isEditing: boolean;
     isSelected: boolean;
     onToggleSelect: () => void;
     onEdit: () => void;
     onSave: (data: Partial<Testimonial>) => void;
     onDelete: () => void;
+    onMoveUp: () => void;
+    onMoveDown: () => void;
     saving: boolean;
 }) {
     const [editData, setEditData] = useState(testimonial);
@@ -275,12 +328,33 @@ function TestimonialCard({
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
             <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity ${isSelected || isEditing ? 'from-orange-500/30 to-orange-600/10 opacity-40' : 'from-orange-500/10 to-transparent group-hover:opacity-30'}`} />
 
-            <div className="relative flex items-center gap-4 p-5 min-h-[100px]">
+            <div className="relative flex items-center gap-3 p-4">
+                {/* Order Controls */}
+                <div className="flex flex-col gap-1 shrink-0">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+                        disabled={index === 0}
+                        className={`w-6 h-6 flex items-center justify-center rounded-md transition-all ${index === 0 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-500 hover:text-orange-400 hover:bg-orange-500/10'}`}
+                        title="Move up"
+                    >
+                        <ArrowUp className="w-4 h-4" />
+                    </button>
+                    <span className="text-[10px] text-gray-600 font-mono text-center">{index + 1}</span>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+                        disabled={index === totalCount - 1}
+                        className={`w-6 h-6 flex items-center justify-center rounded-md transition-all ${index === totalCount - 1 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-500 hover:text-orange-400 hover:bg-orange-500/10'}`}
+                        title="Move down"
+                    >
+                        <ArrowDown className="w-4 h-4" />
+                    </button>
+                </div>
+
                 <button onClick={(e) => { e.stopPropagation(); onToggleSelect(); }} className="shrink-0">
                     {isSelected ? <CheckSquare className="w-5 h-5 text-orange-400" /> : <Square className="w-5 h-5 text-gray-500 hover:text-gray-400" />}
                 </button>
 
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 border border-orange-500/30 flex items-center justify-center shrink-0 cursor-pointer overflow-hidden shadow-lg" onClick={onEdit}>
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 border border-orange-500/30 flex items-center justify-center shrink-0 cursor-pointer overflow-hidden shadow-lg" onClick={onEdit}>
                     {testimonial.avatarUrl ? (
                         <img
                             src={testimonial.avatarUrl}
@@ -292,22 +366,24 @@ function TestimonialCard({
                             }}
                         />
                     ) : null}
-                    <span className={`text-lg font-bold text-white ${testimonial.avatarUrl ? 'hidden' : ''}`}>
+                    <span className={`text-sm font-bold text-white ${testimonial.avatarUrl ? 'hidden' : ''}`}>
                         {testimonial.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                     </span>
                 </div>
 
                 <div className="flex-1 min-w-0 cursor-pointer" onClick={onEdit}>
-                    <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-white font-semibold truncate max-w-[100px] sm:max-w-none">{testimonial.name}</h3>
-                        <span className="text-gray-500 text-sm truncate max-w-[60px] sm:max-w-[120px] hidden sm:inline">{testimonial.role && testimonial.company ? `${testimonial.role} @ ${testimonial.company}` : testimonial.company}</span>
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                        <h3 className="text-white font-semibold text-sm">{testimonial.name}</h3>
+                        {testimonial.role && testimonial.company && (
+                            <span className="text-gray-500 text-xs hidden sm:inline">• {testimonial.role} @ {testimonial.company}</span>
+                        )}
                         {testimonial.isPublished ? (
-                            <span className="px-2 py-0.5 text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-mono uppercase shrink-0">Live</span>
+                            <span className="px-1.5 py-0.5 text-[9px] bg-green-500/20 text-green-400 border border-green-500/30 rounded font-mono uppercase">Live</span>
                         ) : (
-                            <span className="px-2 py-0.5 text-[10px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full font-mono uppercase shrink-0">Draft</span>
+                            <span className="px-1.5 py-0.5 text-[9px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded font-mono uppercase">Draft</span>
                         )}
                     </div>
-                    <p className="text-gray-400 text-sm line-clamp-1">{testimonial.content}</p>
+                    <p className="text-gray-400 text-xs line-clamp-1">{testimonial.content}</p>
                     <div className="flex gap-0.5 mt-1">
                         {[1, 2, 3, 4, 5].map(s => (
                             <Star key={s} className={`w-3 h-3 ${testimonial.rating >= s ? 'text-yellow-400' : 'text-gray-600'}`} fill={testimonial.rating >= s ? 'currentColor' : 'none'} />

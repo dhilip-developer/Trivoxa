@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { COLLECTIONS, Service } from '../../lib/firestore';
 import { useToast } from '../../components/Toast';
@@ -17,8 +17,25 @@ import {
     Plus, Save, Trash2, X, Layers, Eye, EyeOff, ChevronDown, Check,
     Globe, Smartphone, Palette, Settings, Bot, Cloud, Shield,
     BarChart3, ShoppingCart, Code, Rocket, Lightbulb, Zap, Database,
-    Search, CheckSquare, Square
+    Search, CheckSquare, Square, GripVertical
 } from 'lucide-react';
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Tech-style icons using lucide-react (similar to Contact social icons)
 const serviceIconOptions = [
@@ -55,6 +72,27 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     zap: Zap,
     database: Database,
 };
+
+// Accent color schemes matching frontend
+const accentColorStyles: Record<string, { bg: string; border: string; text: string; shadow: string; gradient: string }> = {
+    blue: { bg: 'from-blue-500/30 to-blue-600/10', border: 'border-blue-500/30', text: 'text-blue-400', shadow: 'shadow-blue-500/10', gradient: 'from-blue-500/20 to-transparent' },
+    purple: { bg: 'from-purple-500/30 to-purple-600/10', border: 'border-purple-500/30', text: 'text-purple-400', shadow: 'shadow-purple-500/10', gradient: 'from-purple-500/20 to-transparent' },
+    cyan: { bg: 'from-cyan-500/30 to-cyan-600/10', border: 'border-cyan-500/30', text: 'text-cyan-400', shadow: 'shadow-cyan-500/10', gradient: 'from-cyan-500/20 to-transparent' },
+    pink: { bg: 'from-pink-500/30 to-pink-600/10', border: 'border-pink-500/30', text: 'text-pink-400', shadow: 'shadow-pink-500/10', gradient: 'from-pink-500/20 to-transparent' },
+    orange: { bg: 'from-orange-500/30 to-orange-600/10', border: 'border-orange-500/30', text: 'text-orange-400', shadow: 'shadow-orange-500/10', gradient: 'from-orange-500/20 to-transparent' },
+    green: { bg: 'from-green-500/30 to-green-600/10', border: 'border-green-500/30', text: 'text-green-400', shadow: 'shadow-green-500/10', gradient: 'from-green-500/20 to-transparent' },
+    amber: { bg: 'from-amber-500/30 to-amber-600/10', border: 'border-amber-500/30', text: 'text-amber-400', shadow: 'shadow-amber-500/10', gradient: 'from-amber-500/20 to-transparent' },
+    indigo: { bg: 'from-indigo-500/30 to-indigo-600/10', border: 'border-indigo-500/30', text: 'text-indigo-400', shadow: 'shadow-indigo-500/10', gradient: 'from-indigo-500/20 to-transparent' },
+    violet: { bg: 'from-violet-500/30 to-violet-600/10', border: 'border-violet-500/30', text: 'text-violet-400', shadow: 'shadow-violet-500/10', gradient: 'from-violet-500/20 to-transparent' },
+    rose: { bg: 'from-rose-500/30 to-rose-600/10', border: 'border-rose-500/30', text: 'text-rose-400', shadow: 'shadow-rose-500/10', gradient: 'from-rose-500/20 to-transparent' },
+    teal: { bg: 'from-teal-500/30 to-teal-600/10', border: 'border-teal-500/30', text: 'text-teal-400', shadow: 'shadow-teal-500/10', gradient: 'from-teal-500/20 to-transparent' },
+    red: { bg: 'from-red-500/30 to-red-600/10', border: 'border-red-500/30', text: 'text-red-400', shadow: 'shadow-red-500/10', gradient: 'from-red-500/20 to-transparent' },
+};
+
+function getAccentStyles(color?: string) {
+    return accentColorStyles[color || 'orange'] || accentColorStyles.orange;
+}
+
 
 export default function ServicesEditor() {
     const { showToast } = useToast();
@@ -194,6 +232,45 @@ export default function ServicesEditor() {
         }
     };
 
+    // Drag and drop sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    // Handle drag end - reorder services
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            const oldIndex = services.findIndex((s) => s.id === active.id);
+            const newIndex = services.findIndex((s) => s.id === over.id);
+
+            const reorderedServices = arrayMove(services, oldIndex, newIndex);
+            setServices(reorderedServices);
+
+            // Save new order to Firestore
+            try {
+                const batch = writeBatch(db);
+                reorderedServices.forEach((service, index) => {
+                    const serviceRef = doc(db, COLLECTIONS.SERVICES, service.id!);
+                    batch.update(serviceRef, { order: index, updatedAt: serverTimestamp() });
+                });
+                await batch.commit();
+                showToast('Service order updated', 'success');
+            } catch (error: any) {
+                showToast(`Error updating order: ${error.message}`, 'error');
+                fetchServices(); // Revert to original order
+            }
+        }
+    };
+
     // Filter services by search
     const filteredServices = services.filter(s =>
         searchQuery === '' ||
@@ -261,7 +338,7 @@ export default function ServicesEditor() {
                 )}
 
                 {/* Add New Service Form */}
-                <div className={`transition-all duration-500 ease-in-out ${showAddForm ? 'max-h-[90vh] md:max-h-[800px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                <div className={`transition-all duration-500 ease-in-out ${showAddForm ? 'max-h-[85vh] lg:max-h-[75vh] opacity-100 overflow-y-auto custom-scrollbar' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                     <AdminCard title="New Service" accentColor="green" className="mb-4">
                         <div className="space-y-4">
                             <AdminInput
@@ -311,6 +388,12 @@ export default function ServicesEditor() {
                                             <option value="pink">💗 Pink</option>
                                             <option value="orange">🟠 Orange</option>
                                             <option value="green">🟢 Green</option>
+                                            <option value="amber">🟡 Amber</option>
+                                            <option value="indigo">🔮 Indigo</option>
+                                            <option value="violet">💜 Violet</option>
+                                            <option value="rose">🌹 Rose</option>
+                                            <option value="teal">🩵 Teal</option>
+                                            <option value="red">🔴 Red</option>
                                         </select>
                                     </div>
                                     <div className="space-y-2">
@@ -354,21 +437,33 @@ export default function ServicesEditor() {
                         />
                     </AdminCard>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {filteredServices.map((service) => (
-                            <ServiceCard
-                                key={service.id}
-                                service={service}
-                                isEditing={editingId === service.id}
-                                isSelected={selectedIds.includes(service.id!)}
-                                onToggleSelect={() => toggleSelect(service.id!)}
-                                onEdit={() => setEditingId(editingId === service.id ? null : service.id!)}
-                                onSave={(data) => handleSaveService(service.id!, data)}
-                                onDelete={() => handleDelete(service.id!)}
-                                saving={saving}
-                            />
-                        ))}
-                    </div>
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext
+                            items={filteredServices.map(s => s.id!)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {filteredServices.map((service, index) => (
+                                    <SortableServiceCard
+                                        key={service.id}
+                                        service={service}
+                                        index={index}
+                                        isEditing={editingId === service.id}
+                                        isSelected={selectedIds.includes(service.id!)}
+                                        onToggleSelect={() => toggleSelect(service.id!)}
+                                        onEdit={() => setEditingId(editingId === service.id ? null : service.id!)}
+                                        onSave={(data) => handleSaveService(service.id!, data)}
+                                        onDelete={() => handleDelete(service.id!)}
+                                        saving={saving}
+                                    />
+                                ))}
+                            </div>
+                        </SortableContext>
+                    </DndContext>
                 )}
             </div>
         </div>
@@ -413,9 +508,10 @@ function ServiceIcon({ iconKey, className = "w-6 h-6" }: { iconKey: string; clas
     return <IconComponent className={className} />;
 }
 
-// Individual Service Card with inline editing
-function ServiceCard({
+// Sortable wrapper for ServiceCard
+function SortableServiceCard({
     service,
+    index,
     isEditing,
     isSelected,
     onToggleSelect,
@@ -425,6 +521,7 @@ function ServiceCard({
     saving
 }: {
     service: Service;
+    index: number;
     isEditing: boolean;
     isSelected: boolean;
     onToggleSelect: () => void;
@@ -432,6 +529,64 @@ function ServiceCard({
     onSave: (data: Partial<Service>) => void;
     onDelete: () => void;
     saving: boolean;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: service.id! });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 1000 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className={isEditing ? 'lg:col-span-2' : ''}>
+            <ServiceCard
+                service={service}
+                index={index}
+                isEditing={isEditing}
+                isSelected={isSelected}
+                onToggleSelect={onToggleSelect}
+                onEdit={onEdit}
+                onSave={onSave}
+                onDelete={onDelete}
+                saving={saving}
+                dragHandleProps={{ ...attributes, ...listeners }}
+            />
+        </div>
+    );
+}
+
+// Individual Service Card with inline editing
+function ServiceCard({
+    service,
+    index,
+    isEditing,
+    isSelected,
+    onToggleSelect,
+    onEdit,
+    onSave,
+    onDelete,
+    saving,
+    dragHandleProps
+}: {
+    service: Service;
+    index?: number;
+    isEditing: boolean;
+    isSelected: boolean;
+    onToggleSelect: () => void;
+    onEdit: () => void;
+    onSave: (data: Partial<Service>) => void;
+    onDelete: () => void;
+    saving: boolean;
+    dragHandleProps?: any;
 }) {
     const [editData, setEditData] = useState(service);
     const [featuresInput, setFeaturesInput] = useState(service.features?.join(', ') || '');
@@ -449,31 +604,49 @@ function ServiceCard({
     };
 
     return (
-        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isEditing ? 'lg:col-span-2' : ''} ${isSelected ? 'ring-2 ring-orange-500/50' : isEditing ? 'ring-2 ring-orange-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
-            {/* Gradient Background */}
+        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isSelected ? 'ring-2 ring-orange-500/50' : isEditing ? 'ring-2 ring-orange-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
+            {/* Gradient Background - Uses accent color */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
-            <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity duration-300 ${isSelected || isEditing ? 'from-orange-500/30 to-orange-600/10 opacity-40' : 'from-orange-500/10 to-transparent group-hover:opacity-30'}`} />
+            <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity duration-300 ${isSelected || isEditing ? `${getAccentStyles(editData.accentColor).bg} opacity-40` : `${getAccentStyles(editData.accentColor).gradient} group-hover:opacity-30`}`} />
 
             {/* Header - Always Visible */}
-            <div className="relative flex items-center gap-4 p-5 min-h-[88px]">
+            <div className="relative flex items-center gap-3 p-5 min-h-[88px]">
+                {/* Drag Handle */}
+                {dragHandleProps && (
+                    <button
+                        {...dragHandleProps}
+                        className="shrink-0 touch-none cursor-grab active:cursor-grabbing p-1 rounded-lg hover:bg-white/10 transition-colors"
+                        title="Drag to reorder"
+                    >
+                        <GripVertical className="w-5 h-5 text-gray-500 hover:text-gray-300" />
+                    </button>
+                )}
+
+                {/* Order Badge */}
+                {typeof index === 'number' && (
+                    <span className="shrink-0 w-6 h-6 flex items-center justify-center bg-white/5 border border-white/10 rounded-lg text-xs font-mono text-gray-400">
+                        {index + 1}
+                    </span>
+                )}
+
                 {/* Checkbox */}
                 <button
                     onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
                     className="shrink-0"
                 >
                     {isSelected ? (
-                        <CheckSquare className="w-5 h-5 text-orange-400" />
+                        <CheckSquare className={`w-5 h-5 ${getAccentStyles(editData.accentColor).text}`} />
                     ) : (
                         <Square className="w-5 h-5 text-gray-500 hover:text-gray-400" />
                     )}
                 </button>
 
-                {/* Icon */}
+                {/* Icon - Uses accent color */}
                 <div
-                    className="w-14 h-14 flex items-center justify-center bg-gradient-to-br from-orange-500/30 to-orange-600/10 border border-orange-500/30 rounded-2xl shrink-0 shadow-lg shadow-orange-500/10 cursor-pointer"
+                    className={`w-14 h-14 flex items-center justify-center bg-gradient-to-br ${getAccentStyles(editData.accentColor).bg} border ${getAccentStyles(editData.accentColor).border} rounded-2xl shrink-0 shadow-lg ${getAccentStyles(editData.accentColor).shadow} cursor-pointer transition-all duration-300`}
                     onClick={onEdit}
                 >
-                    <ServiceIcon iconKey={editData.icon || 'settings'} className="w-7 h-7 text-orange-400" />
+                    <ServiceIcon iconKey={editData.icon || 'settings'} className={`w-7 h-7 ${getAccentStyles(editData.accentColor).text}`} />
                 </div>
 
                 {/* Content */}
@@ -496,7 +669,7 @@ function ServiceCard({
             </div>
 
             {/* Expandable Edit Section */}
-            <div className={`relative transition-all duration-500 ease-in-out ${isEditing ? 'max-h-[90vh] md:max-h-[700px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+            <div className={`relative transition-all duration-500 ease-in-out ${isEditing ? 'max-h-[80vh] lg:max-h-[65vh] opacity-100 overflow-y-auto custom-scrollbar' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                 <div className="p-5 pt-0 border-t border-white/5 space-y-4">
                     <AdminInput
                         label="Title"
@@ -542,6 +715,12 @@ function ServiceCard({
                                     <option value="pink">💗 Pink</option>
                                     <option value="orange">🟠 Orange</option>
                                     <option value="green">🟢 Green</option>
+                                    <option value="amber">🟡 Amber</option>
+                                    <option value="indigo">🔮 Indigo</option>
+                                    <option value="violet">💜 Violet</option>
+                                    <option value="rose">🌹 Rose</option>
+                                    <option value="teal">🩵 Teal</option>
+                                    <option value="red">🔴 Red</option>
                                 </select>
                             </div>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { COLLECTIONS, Project } from '../../lib/firestore';
 import { useToast } from '../../components/Toast';
@@ -13,7 +13,30 @@ import {
     AdminEmptyState,
     AdminBadge
 } from '../../components/Admin';
-import { Plus, Save, Trash2, X, FolderOpen, Eye, EyeOff, Image, Link2, Download, ChevronDown, Globe, Search, CheckSquare, Square } from 'lucide-react';
+import { Plus, Save, Trash2, X, FolderOpen, Eye, EyeOff, Image, Link2, Download, ChevronDown, Globe, Search, CheckSquare, Square, GripVertical } from 'lucide-react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// Accent Color Styles Mapping
+const accentColorStyles: Record<string, { bg: string; border: string; text: string; shadow: string; gradient: string }> = {
+    orange: { bg: 'bg-orange-500/10', border: 'border-orange-500/20', text: 'text-orange-400', shadow: 'shadow-orange-500/10', gradient: 'from-orange-500/20 to-amber-500/20' },
+    blue: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', shadow: 'shadow-blue-500/10', gradient: 'from-blue-500/20 to-cyan-500/20' },
+    purple: { bg: 'bg-purple-500/10', border: 'border-purple-500/20', text: 'text-purple-400', shadow: 'shadow-purple-500/10', gradient: 'from-purple-500/20 to-pink-500/20' },
+    cyan: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', text: 'text-cyan-400', shadow: 'shadow-cyan-500/10', gradient: 'from-cyan-500/20 to-teal-500/20' },
+    pink: { bg: 'bg-pink-500/10', border: 'border-pink-500/20', text: 'text-pink-400', shadow: 'shadow-pink-500/10', gradient: 'from-pink-500/20 to-rose-500/20' },
+    green: { bg: 'bg-green-500/10', border: 'border-green-500/20', text: 'text-green-400', shadow: 'shadow-green-500/10', gradient: 'from-green-500/20 to-emerald-500/20' },
+    amber: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', shadow: 'shadow-amber-500/10', gradient: 'from-amber-500/20 to-yellow-500/20' },
+    indigo: { bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', text: 'text-indigo-400', shadow: 'shadow-indigo-500/10', gradient: 'from-indigo-500/20 to-purple-500/20' },
+    violet: { bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400', shadow: 'shadow-violet-500/10', gradient: 'from-violet-500/20 to-purple-500/20' },
+    rose: { bg: 'bg-rose-500/10', border: 'border-rose-500/20', text: 'text-rose-400', shadow: 'shadow-rose-500/10', gradient: 'from-rose-500/20 to-pink-500/20' },
+    teal: { bg: 'bg-teal-500/10', border: 'border-teal-500/20', text: 'text-teal-400', shadow: 'shadow-teal-500/10', gradient: 'from-teal-500/20 to-cyan-500/20' },
+    red: { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400', shadow: 'shadow-red-500/10', gradient: 'from-red-500/20 to-orange-500/20' },
+};
+
+function getAccentStyles(color?: string) {
+    return accentColorStyles[color || 'orange'] || accentColorStyles.orange;
+}
 
 export default function ProjectsEditor() {
     const { showToast } = useToast();
@@ -201,6 +224,45 @@ export default function ProjectsEditor() {
         }
     };
 
+    // Drag and drop sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    // Handle drag end - reorder projects
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            const oldIndex = projects.findIndex((p) => p.id === active.id);
+            const newIndex = projects.findIndex((p) => p.id === over.id);
+
+            const reorderedProjects = arrayMove(projects, oldIndex, newIndex);
+            setProjects(reorderedProjects);
+
+            // Save new order to Firestore
+            try {
+                const batch = writeBatch(db);
+                reorderedProjects.forEach((project, index) => {
+                    const projectRef = doc(db, COLLECTIONS.PROJECTS, project.id!);
+                    batch.update(projectRef, { order: index, updatedAt: serverTimestamp() });
+                });
+                await batch.commit();
+                showToast('Project order updated', 'success');
+            } catch (error: any) {
+                showToast(`Error updating order: ${error.message}`, 'error');
+                fetchProjects(); // Revert to original order
+            }
+        }
+    };
+
     // Filter projects by search and category
     const filteredProjects = projects.filter(p => {
         const matchesSearch = searchQuery === '' ||
@@ -287,7 +349,7 @@ export default function ProjectsEditor() {
                 )}
 
                 {/* Add New Project Form */}
-                <div className={`transition-all duration-500 ease-in-out ${showAddForm ? 'max-h-[90vh] md:max-h-[900px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                <div className={`transition-all duration-500 ease-in-out ${showAddForm ? 'opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                     <AdminCard title="New Project" accentColor="purple" className="mb-4">
                         <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -363,63 +425,15 @@ export default function ProjectsEditor() {
                                 )}
                             </div>
 
-                            {/* Design Customization */}
-                            <div className="space-y-3 pt-2 border-t border-white/5">
-                                <label className="text-xs font-mono text-gray-500 uppercase flex items-center gap-2">
-                                    <span className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
-                                    Design Customization
-                                </label>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs text-gray-500">Accent Color</label>
-                                        <select
-                                            value={formData.accentColor || 'orange'}
-                                            onChange={(e) => setFormData({ ...formData, accentColor: e.target.value as any })}
-                                            className="w-full px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:border-orange-500/50 focus:outline-none"
-                                        >
-                                            <option value="blue">🔵 Blue</option>
-                                            <option value="purple">🟣 Purple</option>
-                                            <option value="cyan">🔷 Cyan</option>
-                                            <option value="pink">💗 Pink</option>
-                                            <option value="orange">🟠 Orange</option>
-                                            <option value="green">🟢 Green</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs text-gray-500">Display Style</label>
-                                        <select
-                                            value={formData.displayStyle || 'default'}
-                                            onChange={(e) => setFormData({ ...formData, displayStyle: e.target.value as any })}
-                                            className="w-full px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:border-orange-500/50 focus:outline-none"
-                                        >
-                                            <option value="default">Default</option>
-                                            <option value="minimal">Minimal</option>
-                                            <option value="detailed">Detailed</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs text-gray-500">Featured</label>
-                                        <label className="flex items-center gap-3 px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl cursor-pointer hover:border-orange-500/30 transition-colors">
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.featured || false}
-                                                onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                                                className="w-4 h-4 rounded border-gray-600 bg-black/40 text-orange-500"
-                                            />
-                                            <span className="text-sm text-gray-300">⭐ Featured Project</span>
-                                        </label>
-                                    </div>
-                                </div>
+                            <div className="pt-2 border-t border-white/5 flex justify-end gap-3">
+                                <AdminButton onClick={() => setShowAddForm(false)} variant="ghost">Cancel</AdminButton>
+                                <AdminButton onClick={handleAddProject} disabled={saving}>
+                                    {saving ? 'Creating...' : 'Create Project'}
+                                </AdminButton>
                             </div>
-
-                            <AdminButton onClick={handleAddProject} disabled={saving || !formData.title}>
-                                <Save className="w-4 h-4 mr-2" />
-                                {saving ? 'Adding...' : 'Add Project'}
-                            </AdminButton>
                         </div>
                     </AdminCard>
                 </div>
-
                 {/* Projects List */}
                 {filteredProjects.length === 0 ? (
                     <AdminCard>
@@ -435,32 +449,45 @@ export default function ProjectsEditor() {
                         />
                     </AdminCard>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {filteredProjects.map((project) => (
-                            <ProjectCard
-                                key={project.id}
-                                project={project}
-                                categories={categories}
-                                isEditing={editingId === project.id}
-                                isSelected={selectedIds.includes(project.id!)}
-                                onToggleSelect={() => toggleSelect(project.id!)}
-                                onEdit={() => setEditingId(editingId === project.id ? null : project.id!)}
-                                onSave={(data) => handleSaveProject(project.id!, data)}
-                                onDelete={() => handleDelete(project.id!)}
-                                saving={saving}
-                                showToast={showToast}
-                            />
-                        ))}
-                    </div>
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext
+                            items={filteredProjects.map(p => p.id!)}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {filteredProjects.map((project, index) => (
+                                    <SortableProjectCard
+                                        key={project.id}
+                                        project={project}
+                                        index={index}
+                                        categories={categories}
+                                        isEditing={editingId === project.id}
+                                        isSelected={selectedIds.includes(project.id!)}
+                                        onToggleSelect={() => toggleSelect(project.id!)}
+                                        onEdit={() => setEditingId(editingId === project.id ? null : project.id!)}
+                                        onSave={(data) => handleSaveProject(project.id!, data)}
+                                        onDelete={() => handleDelete(project.id!)}
+                                        saving={saving}
+                                        showToast={showToast}
+                                    />
+                                ))}
+                            </div>
+                        </SortableContext>
+                    </DndContext>
                 )}
             </div>
         </div>
     );
 }
 
-// Individual Project Card with inline editing
-function ProjectCard({
+// Sortable wrapper for ProjectCard
+function SortableProjectCard({
     project,
+    index,
     categories,
     isEditing,
     isSelected,
@@ -472,6 +499,7 @@ function ProjectCard({
     showToast
 }: {
     project: Project;
+    index: number;
     categories: string[];
     isEditing: boolean;
     isSelected: boolean;
@@ -481,6 +509,70 @@ function ProjectCard({
     onDelete: () => void;
     saving: boolean;
     showToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+}) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: project.id! });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 1000 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className={isEditing ? 'lg:col-span-2' : ''}>
+            <ProjectCard
+                project={project}
+                index={index}
+                categories={categories}
+                isEditing={isEditing}
+                isSelected={isSelected}
+                onToggleSelect={onToggleSelect}
+                onEdit={onEdit}
+                onSave={onSave}
+                onDelete={onDelete}
+                saving={saving}
+                showToast={showToast}
+                dragHandleProps={{ ...attributes, ...listeners }}
+            />
+        </div>
+    );
+}
+
+// Individual Project Card with inline editing
+function ProjectCard({
+    project,
+    index,
+    categories,
+    isEditing,
+    isSelected,
+    onToggleSelect,
+    onEdit,
+    onSave,
+    onDelete,
+    saving,
+    showToast,
+    dragHandleProps
+}: {
+    project: Project;
+    index?: number;
+    categories: string[];
+    isEditing: boolean;
+    isSelected: boolean;
+    onToggleSelect: () => void;
+    onEdit: () => void;
+    onSave: (data: Partial<Project>) => void;
+    onDelete: () => void;
+    saving: boolean;
+    showToast: (msg: string, type: 'success' | 'error' | 'info') => void;
+    dragHandleProps?: any;
 }) {
     const [editData, setEditData] = useState(project);
     const [tagsInput, setTagsInput] = useState(project.tags?.join(', ') || '');
@@ -540,27 +632,46 @@ function ProjectCard({
     };
 
     return (
-        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isEditing ? 'lg:col-span-2' : ''} ${isSelected || isEditing ? 'ring-2 ring-purple-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
+        <div className={`group relative rounded-2xl overflow-hidden transition-all duration-300 ${isSelected ? 'ring-2 ring-orange-500/50' : isEditing ? 'ring-2 ring-orange-500/50' : 'hover:ring-1 hover:ring-white/20'}`}>
             {/* Gradient Background */}
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
-            <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity duration-300 ${isSelected || isEditing ? 'from-purple-500/30 to-purple-600/10 opacity-40' : 'from-purple-500/10 to-transparent group-hover:opacity-30'}`} />
+            <div className={`absolute inset-0 bg-gradient-to-br opacity-20 transition-opacity duration-300 ${isSelected || isEditing ? `${getAccentStyles('orange').bg} opacity-40` : `${getAccentStyles('orange').gradient} group-hover:opacity-30`}`} />
 
             {/* Header */}
-            <div className="relative flex items-center gap-4 p-5 min-h-[88px] cursor-pointer" onClick={onEdit}>
+            <div className="relative flex items-center gap-3 p-5 min-h-[88px] cursor-pointer" onClick={onEdit}>
+                {/* Drag Handle */}
+                {dragHandleProps && (
+                    <button
+                        {...dragHandleProps}
+                        className="shrink-0 touch-none cursor-grab active:cursor-grabbing p-1 rounded-lg hover:bg-white/10 transition-colors"
+                        title="Drag to reorder"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <GripVertical className="w-5 h-5 text-gray-500 hover:text-gray-300" />
+                    </button>
+                )}
+
+                {/* Order Badge */}
+                {typeof index === 'number' && (
+                    <span className="shrink-0 w-6 h-6 flex items-center justify-center bg-white/5 border border-white/10 rounded-lg text-xs font-mono text-gray-400">
+                        {index + 1}
+                    </span>
+                )}
+
                 {/* Checkbox */}
                 <button
                     onClick={(e) => { e.stopPropagation(); onToggleSelect(); }}
                     className="shrink-0"
                 >
                     {isSelected ? (
-                        <CheckSquare className="w-5 h-5 text-purple-400" />
+                        <CheckSquare className={`w-5 h-5 ${getAccentStyles('orange').text}`} />
                     ) : (
                         <Square className="w-5 h-5 text-gray-500 hover:text-gray-400" />
                     )}
                 </button>
 
                 {/* Thumbnail */}
-                <div className="w-16 h-12 rounded-xl overflow-hidden bg-black/40 shrink-0 border border-white/10">
+                <div className={`w-16 h-12 rounded-xl overflow-hidden bg-black/40 shrink-0 border ${getAccentStyles('orange').border} shadow-sm`}>
                     {editData.imageUrl ? (
                         <img src={editData.imageUrl} alt={editData.title} className="w-full h-full object-cover" />
                     ) : (
@@ -571,8 +682,11 @@ function ProjectCard({
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-white font-semibold text-lg truncate max-w-[80px] sm:max-w-none">{editData.title}</h3>
-                        <span className="px-2 py-0.5 text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-full font-mono shrink-0 hidden sm:inline">{editData.category}</span>
+                        <h3 className="text-white font-semibold text-lg truncate max-w-[120px] sm:max-w-none">{editData.title}</h3>
+                        <span className={`px-2 py-0.5 text-[10px] ${getAccentStyles('orange').bg} ${getAccentStyles('orange').text} border ${getAccentStyles('orange').border} rounded-full font-mono shrink-0 hidden sm:inline`}>{editData.category}</span>
+                        {editData.featured && (
+                            <span className="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full font-mono uppercase shrink-0">Featured</span>
+                        )}
                         {project.isPublished ? (
                             <span className="px-2 py-0.5 text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 rounded-full font-mono uppercase shrink-0">Live</span>
                         ) : (
@@ -583,13 +697,13 @@ function ProjectCard({
                 </div>
 
                 {/* Chevron */}
-                <div className={`w-8 h-8 flex items-center justify-center rounded-full bg-white/5 transition-all duration-300 ${isEditing ? 'rotate-180 bg-purple-500/20' : 'group-hover:bg-white/10'}`}>
-                    <ChevronDown className={`w-5 h-5 ${isEditing ? 'text-purple-400' : 'text-gray-500'}`} />
+                <div className={`w-8 h-8 flex items-center justify-center rounded-full bg-white/5 transition-all duration-300 ${isEditing ? 'rotate-180 bg-orange-500/20' : 'group-hover:bg-white/10'}`}>
+                    <ChevronDown className={`w-5 h-5 ${isEditing ? 'text-orange-400' : 'text-gray-500'}`} />
                 </div>
             </div>
 
             {/* Expandable Edit Section */}
-            <div className={`relative transition-all duration-500 ease-in-out ${isEditing ? 'max-h-[90vh] md:max-h-[700px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+            <div className={`relative transition-all duration-500 ease-in-out ${isEditing ? 'opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
                 <div className="p-5 pt-0 border-t border-white/5 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                         <AdminInput label="Title" value={editData.title} onChange={(v) => setEditData({ ...editData, title: v })} />
@@ -639,61 +753,7 @@ function ProjectCard({
                         )}
                     </div>
 
-                    {/* Design Customization */}
-                    <div className="space-y-3 pt-2 border-t border-white/5">
-                        <label className="text-xs font-mono text-gray-500 uppercase flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
-                            Design Customization
-                        </label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Accent Color */}
-                            <div className="space-y-2">
-                                <label className="text-xs text-gray-500">Accent Color</label>
-                                <select
-                                    value={editData.accentColor || 'orange'}
-                                    onChange={(e) => setEditData({ ...editData, accentColor: e.target.value as any })}
-                                    className="w-full px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:border-orange-500/50 focus:outline-none"
-                                >
-                                    <option value="blue">🔵 Blue</option>
-                                    <option value="purple">🟣 Purple</option>
-                                    <option value="cyan">🔷 Cyan</option>
-                                    <option value="pink">💗 Pink</option>
-                                    <option value="orange">🟠 Orange</option>
-                                    <option value="green">🟢 Green</option>
-                                </select>
-                            </div>
-
-                            {/* Display Style */}
-                            <div className="space-y-2">
-                                <label className="text-xs text-gray-500">Display Style</label>
-                                <select
-                                    value={editData.displayStyle || 'default'}
-                                    onChange={(e) => setEditData({ ...editData, displayStyle: e.target.value as any })}
-                                    className="w-full px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:border-orange-500/50 focus:outline-none"
-                                >
-                                    <option value="default">Default</option>
-                                    <option value="minimal">Minimal</option>
-                                    <option value="detailed">Detailed</option>
-                                </select>
-                            </div>
-
-                            {/* Featured Toggle */}
-                            <div className="space-y-2">
-                                <label className="text-xs text-gray-500">Featured</label>
-                                <label className="flex items-center gap-3 px-4 py-2.5 bg-black/40 border border-white/10 rounded-xl cursor-pointer hover:border-orange-500/30 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={editData.featured || false}
-                                        onChange={(e) => setEditData({ ...editData, featured: e.target.checked })}
-                                        className="w-4 h-4 rounded border-gray-600 bg-black/40 text-orange-500 focus:ring-orange-500/50"
-                                    />
-                                    <span className="text-sm text-gray-300">⭐ Featured Project</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
+                    <div className="flex gap-3 pt-2 border-t border-white/5 mt-4">
                         <AdminButton size="sm" onClick={handleSave} disabled={saving}><Save className="w-4 h-4 mr-1" />{saving ? 'Saving...' : 'Save'}</AdminButton>
                         <AdminButton size="sm" variant="ghost" onClick={onEdit}>Cancel</AdminButton>
                         <AdminButton size="sm" variant="danger" onClick={onDelete} className="ml-auto"><Trash2 className="w-4 h-4" /></AdminButton>

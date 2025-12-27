@@ -52,6 +52,12 @@ const accentColorSchemes: Record<string, { gradient: string; glow: string; borde
     pink: { gradient: 'from-pink-500 to-rose-500', glow: 'bg-pink-500/20', border: 'border-pink-500/30', text: 'text-pink-400' },
     orange: { gradient: 'from-amber-500 to-orange-500', glow: 'bg-amber-500/20', border: 'border-amber-500/30', text: 'text-amber-400' },
     green: { gradient: 'from-emerald-500 to-green-500', glow: 'bg-emerald-500/20', border: 'border-emerald-500/30', text: 'text-emerald-400' },
+    amber: { gradient: 'from-amber-400 to-yellow-500', glow: 'bg-amber-500/20', border: 'border-amber-500/30', text: 'text-amber-400' },
+    indigo: { gradient: 'from-indigo-500 to-purple-500', glow: 'bg-indigo-500/20', border: 'border-indigo-500/30', text: 'text-indigo-400' },
+    violet: { gradient: 'from-violet-500 to-purple-500', glow: 'bg-violet-500/20', border: 'border-violet-500/30', text: 'text-violet-400' },
+    rose: { gradient: 'from-rose-500 to-pink-500', glow: 'bg-rose-500/20', border: 'border-rose-500/30', text: 'text-rose-400' },
+    teal: { gradient: 'from-teal-500 to-cyan-500', glow: 'bg-teal-500/20', border: 'border-teal-500/30', text: 'text-teal-400' },
+    red: { gradient: 'from-red-500 to-rose-500', glow: 'bg-red-500/20', border: 'border-red-500/30', text: 'text-red-400' },
 };
 
 function getColorScheme(accentColor?: string, iconKey?: string) {
