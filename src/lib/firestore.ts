@@ -62,6 +62,10 @@ export interface Project {
     link: string;
     order: number;
     isPublished: boolean;
+    // Design customization options
+    accentColor?: 'blue' | 'purple' | 'cyan' | 'pink' | 'orange' | 'green';
+    featured?: boolean;
+    displayStyle?: 'default' | 'minimal' | 'detailed';
 }
 
 export interface TechStackItem {
