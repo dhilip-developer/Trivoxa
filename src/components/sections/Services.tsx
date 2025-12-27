@@ -74,43 +74,52 @@ const defaultServices: Partial<Service>[] = [
         title: "Web Development",
         description: "Custom web applications with stunning UI/UX, responsive design, and seamless functionality across all devices.",
         features: ["React", "Next.js", "TypeScript", "Node.js"],
-        icon: "globe"
+        icon: "globe",
+        accentColor: "blue",
     },
     {
         title: "Mobile App Development",
         description: "Native and cross-platform mobile applications with beautiful interfaces and robust performance.",
         features: ["React Native", "Flutter", "iOS/Swift", "Android/Kotlin"],
-        icon: "smartphone"
+        icon: "smartphone",
+        accentColor: "purple",
     },
     {
         title: "Backend Development",
         description: "Secure, scalable, and high-performance backend systems that power your applications.",
         features: ["MongoDB", "Express", "API Design", "SQL / MySQL"],
-        icon: "database"
+        icon: "database",
+        accentColor: "cyan",
     },
     {
         title: "UI/UX Design",
         description: "User-centered designs that combine aesthetics with functionality to create engaging digital experiences.",
         features: ["Figma", "Prototyping", "User Testing", "Design Systems"],
-        icon: "palette"
+        icon: "palette",
+        accentColor: "pink",
     },
     {
         title: "AI Automation",
         description: "Automate workflows for websites, web apps, and mobile applications with powerful AI-driven solutions.",
         features: ["N8N Workflows", "Playwright", "Process Automation"],
-        icon: "bot"
+        icon: "bot",
+        accentColor: "orange",
+        featured: true,
     },
     {
         title: "Cloud & DevOps",
         description: "Intelligent cloud infrastructure and deployment solutions for scalable applications.",
         features: ["AWS", "Docker", "CI/CD", "Kubernetes"],
-        icon: "cloud"
+        icon: "cloud",
+        accentColor: "purple",
     },
     {
         title: "Custom Solutions & Micro SaaS",
         description: "Tailored CRM systems, Micro-SaaS products, and bespoke software built for your unique business needs.",
         features: ["Custom CRM", "SaaS Development", "Scalable Architecture"],
-        icon: "rocket"
+        icon: "rocket",
+        accentColor: "orange",
+        featured: true,
     }
 ];
 
@@ -267,7 +276,7 @@ function ServiceDetailModal({
     onRequestService: () => void;
 }) {
     if (!service) return null;
-    const colors = getColorScheme(service.icon);
+    const colors = getColorScheme(service.accentColor, service.icon);
 
     return (
         <AnimatePresence>
